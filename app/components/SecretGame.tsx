@@ -249,7 +249,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
           <div className="flex flex-col items-center gap-5 max-w-sm text-center">
             <p
               className="text-xs font-mono leading-relaxed"
-              style={{ color: "rgba(100, 255, 100, 0.6)" }}
+              style={{ color: "rgba(200, 180, 255, 0.85)" }}
             >
               &quot;Everyone tries to type my name,
               <br />
@@ -260,7 +260,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
               a familiar mistake they never detect.
               <br />
               <br />
-              <span style={{ color: "rgba(100, 255, 100, 0.35)" }}>
+              <span style={{ color: "rgba(200, 180, 255, 0.5)" }}>
                 What do they type instead?
               </span>
               &quot;
