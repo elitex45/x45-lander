@@ -271,18 +271,18 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
                 spellCheck={false}
                 className="bg-transparent border font-mono text-sm px-4 py-2 rounded-lg outline-none w-36 text-center"
                 style={{
-                  borderColor: "rgba(0, 255, 65, 0.3)",
-                  color: "#00ff41",
-                  caretColor: "#00ff41",
-                  textShadow: "0 0 8px rgba(0,255,65,0.3)",
+                  borderColor: "rgba(232, 85, 46, 0.4)",
+                  color: "#E8552E",
+                  caretColor: "#E8552E",
+                  textShadow: "0 0 8px rgba(232,85,46,0.3)",
                 }}
               />
               <button
                 type="submit"
                 className="font-mono text-xs px-3 py-2 rounded-lg border transition-colors hover:bg-[rgba(0,255,65,0.05)]"
                 style={{
-                  borderColor: "rgba(0, 255, 65, 0.3)",
-                  color: "#00ff41",
+                  borderColor: "rgba(232, 85, 46, 0.4)",
+                  color: "#E8552E",
                 }}
               >
                 &gt;
