@@ -119,8 +119,13 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
   // Secret game state
   const catPositionRef = useRef({ x: 200, y: 0 });
   const [fedTrigger, setFedTrigger] = useState(0);
+  const [catFriendly, setCatFriendly] = useState(false);
   const handleFeedCat = useCallback(() => {
     setFedTrigger((prev) => prev + 1);
+  }, []);
+  const handlePhaseChange = useCallback((phase: string) => {
+    if (phase === "authorized") setCatFriendly(true);
+    if (phase === "idle") setCatFriendly(false);
   }, []);
 
   // Parallax values for hero content
@@ -138,8 +143,8 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
       <div className="sunset-sky" aria-hidden="true" />
       <div className="noise-overlay" aria-hidden="true" />
       <div className="scan-line" aria-hidden="true" />
-      <PageCat isDark={isDark} positionRef={catPositionRef} fedTrigger={fedTrigger} />
-      <SecretGame catPosition={catPositionRef} onFeedCat={handleFeedCat} isDark={isDark} />
+      <PageCat isDark={isDark} positionRef={catPositionRef} fedTrigger={fedTrigger} friendly={catFriendly} />
+      <SecretGame catPosition={catPositionRef} onFeedCat={handleFeedCat} onPhaseChange={handlePhaseChange} isDark={isDark} />
 
       {/* Content */}
       <main className="relative z-10 max-w-2xl mx-auto px-6">

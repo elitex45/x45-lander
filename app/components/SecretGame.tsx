@@ -8,6 +8,7 @@ type GamePhase = "idle" | "fish-collected" | "blackout" | "authorized";
 interface SecretGameProps {
   catPosition: React.MutableRefObject<{ x: number; y: number }>;
   onFeedCat: () => void;
+  onPhaseChange: (phase: GamePhase) => void;
   isDark: boolean;
 }
 
@@ -15,8 +16,6 @@ interface SecretGameProps {
 function playMeow() {
   try {
     const ctx = new AudioContext();
-
-    // Main meow oscillator — frequency sweep
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     const filter = ctx.createBiquadFilter();
@@ -31,21 +30,17 @@ function playMeow() {
     gain.connect(ctx.destination);
 
     const now = ctx.currentTime;
-
-    // Meow frequency contour: rise then fall
     osc.frequency.setValueAtTime(500, now);
     osc.frequency.linearRampToValueAtTime(900, now + 0.15);
     osc.frequency.linearRampToValueAtTime(700, now + 0.3);
     osc.frequency.linearRampToValueAtTime(400, now + 0.5);
 
-    // Amplitude envelope
     gain.gain.setValueAtTime(0, now);
     gain.gain.linearRampToValueAtTime(0.15, now + 0.05);
     gain.gain.linearRampToValueAtTime(0.12, now + 0.2);
     gain.gain.linearRampToValueAtTime(0.08, now + 0.35);
     gain.gain.linearRampToValueAtTime(0, now + 0.5);
 
-    // Filter sweep for natural sound
     filter.frequency.setValueAtTime(800, now);
     filter.frequency.linearRampToValueAtTime(1400, now + 0.15);
     filter.frequency.linearRampToValueAtTime(600, now + 0.5);
@@ -53,7 +48,6 @@ function playMeow() {
     osc.start(now);
     osc.stop(now + 0.55);
 
-    // Second harmonic for richness
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.type = "sine";
@@ -68,37 +62,41 @@ function playMeow() {
     osc2.start(now);
     osc2.stop(now + 0.5);
   } catch {
-    // Audio not available — silent fail
+    // silent fail
   }
 }
 
-export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) {
+export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: SecretGameProps) {
   const [phase, setPhase] = useState<GamePhase>("idle");
   const [fishPos, setFishPos] = useState({ x: 0, y: 0 });
-  const [fishVisible, setFishVisible] = useState(true);
   const [mousePos, setMousePos] = useState({ x: -500, y: -500 });
   const [passwordValue, setPasswordValue] = useState("");
   const [showAuth, setShowAuth] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const torchRef = useRef<HTMLDivElement>(null);
+  const feedingRef = useRef(false); // prevent double-feed
 
-  // Place fish at a random spot on initial mount
+  // Propagate phase changes
   useEffect(() => {
+    onPhaseChange(phase);
+  }, [phase, onPhaseChange]);
+
+  // Place fish
+  useEffect(() => {
+    if (phase !== "idle") return;
     const timeout = setTimeout(() => {
       setFishPos({
         x: 100 + Math.random() * (window.innerWidth - 200),
         y: window.innerHeight * 0.5 + Math.random() * window.innerHeight * 0.3,
       });
-    }, 5000); // appear after 5 seconds
+    }, 5000);
     return () => clearTimeout(timeout);
-  }, []);
+  }, [phase]);
 
-  // Track mouse for torch and fish-following
+  // Track mouse
   useEffect(() => {
     const onMouse = (e: MouseEvent) => {
       setMousePos({ x: e.clientX, y: e.clientY });
-
-      // Update torch position directly for performance
       if (torchRef.current) {
         torchRef.current.style.setProperty("--mx", `${e.clientX}px`);
         torchRef.current.style.setProperty("--my", `${e.clientY}px`);
@@ -108,48 +106,38 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
     return () => window.removeEventListener("mousemove", onMouse);
   }, []);
 
-  // When fish is collected and mouse is near cat → feed
+  // Fish→cat detection
   useEffect(() => {
     if (phase !== "fish-collected") return;
+    feedingRef.current = false;
 
     const check = setInterval(() => {
+      if (feedingRef.current) return;
       const catPos = catPosition.current;
       const dist = Math.sqrt(
         (mousePos.x - catPos.x) ** 2 + (mousePos.y - catPos.y) ** 2
       );
-
       if (dist < 80) {
-        // Feed the cat!
+        feedingRef.current = true;
         onFeedCat();
         playMeow();
-
-        // Small delay then blackout
-        setTimeout(() => {
-          setPhase("blackout");
-        }, 1500);
+        setTimeout(() => setPhase("blackout"), 1500);
       }
     }, 100);
-
     return () => clearInterval(check);
   }, [phase, mousePos, catPosition, onFeedCat]);
 
-  // Focus hidden input when blackout starts
+  // Scroll to bottom on blackout
   useEffect(() => {
     if (phase === "blackout") {
-      // Scroll to very bottom after transition
       setTimeout(() => {
-        window.scrollTo({
-          top: document.body.scrollHeight,
-          behavior: "smooth",
-        });
-      }, 1500);
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      }, 2000);
     }
   }, [phase]);
 
   const handleFishClick = useCallback(() => {
-    if (phase === "idle") {
-      setPhase("fish-collected");
-    }
+    if (phase === "idle") setPhase("fish-collected");
   }, [phase]);
 
   const handlePasswordSubmit = useCallback(
@@ -157,15 +145,12 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
       e.preventDefault();
       if (passwordValue.toLowerCase() === "car") {
         setShowAuth(true);
-        setTimeout(() => {
-          setPhase("authorized");
-        }, 2000);
+        setTimeout(() => setPhase("authorized"), 2500);
       } else {
-        // Wrong password — shake
         const input = inputRef.current;
         if (input) {
           input.style.animation = "none";
-          input.offsetHeight; // force reflow
+          input.offsetHeight;
           input.style.animation = "shake 0.4s ease";
         }
         setPasswordValue("");
@@ -174,11 +159,19 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
     [passwordValue]
   );
 
+  const resetGame = useCallback(() => {
+    setPhase("idle");
+    setShowAuth(false);
+    setPasswordValue("");
+    setFishPos({ x: 0, y: 0 });
+    feedingRef.current = false;
+  }, []);
+
   return (
     <>
       {/* ── Floating Fish ── */}
       <AnimatePresence>
-        {phase === "idle" && fishVisible && fishPos.x > 0 && (
+        {phase === "idle" && fishPos.x > 0 && (
           <motion.button
             initial={{ opacity: 0, scale: 0 }}
             animate={{
@@ -227,7 +220,7 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
         )}
       </AnimatePresence>
 
-      {/* ── Hint text when fish collected ── */}
+      {/* ── Hint banner ── */}
       <AnimatePresence>
         {phase === "fish-collected" && (
           <motion.div
@@ -236,9 +229,7 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
             exit={{ opacity: 0 }}
             className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 text-xs font-mono px-4 py-2 rounded-full"
             style={{
-              background: isDark
-                ? "rgba(0,0,0,0.7)"
-                : "rgba(255,255,255,0.8)",
+              background: isDark ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.8)",
               color: "var(--accent)",
               backdropFilter: "blur(8px)",
               border: "1px solid var(--border)",
@@ -249,68 +240,30 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
         )}
       </AnimatePresence>
 
-      {/* ── Blackout Overlay with Torch ── */}
-      <AnimatePresence>
-        {(phase === "blackout" || (phase === "authorized" && !showAuth)) && (
-          <motion.div
-            ref={torchRef}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-            className="fixed inset-0 z-[100]"
-            style={{
-              background: "black",
-              ["--mx" as string]: `${mousePos.x}px`,
-              ["--my" as string]: `${mousePos.y}px`,
-              maskImage:
-                "radial-gradient(circle 120px at var(--mx) var(--my), transparent 60%, rgba(0,0,0,0.3) 80%, black 100%)",
-              WebkitMaskImage:
-                "radial-gradient(circle 120px at var(--mx) var(--my), transparent 60%, rgba(0,0,0,0.3) 80%, black 100%)",
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Torch glow effect (soft light around cursor) ── */}
-      <AnimatePresence>
-        {phase === "blackout" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 2 }}
-            className="fixed z-[99] pointer-events-none"
-            style={{
-              left: mousePos.x - 80,
-              top: mousePos.y - 80,
-              width: 160,
-              height: 160,
-              borderRadius: "50%",
-              background:
-                "radial-gradient(circle, rgba(255,220,150,0.06) 0%, transparent 70%)",
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Hidden Secret Input (below footer, only in blackout) ── */}
+      {/* ── Secret input BEHIND the blackout (only visible through torch) ── */}
       {phase === "blackout" && (
         <div
-          className="relative z-[101] flex flex-col items-center justify-center py-20"
-          style={{ marginTop: "40px" }}
+          className="relative z-10 flex flex-col items-center justify-center py-24"
+          style={{ marginTop: "20px" }}
         >
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 2, duration: 1 }}
-            className="flex flex-col items-center gap-4"
-          >
+          <div className="flex flex-col items-center gap-5 max-w-sm text-center">
             <p
-              className="text-xs font-mono tracking-widest uppercase"
-              style={{ color: "rgba(100, 255, 100, 0.5)" }}
+              className="text-xs font-mono leading-relaxed"
+              style={{ color: "rgba(100, 255, 100, 0.6)" }}
             >
-              [ classified terminal ]
+              &quot;Everyone tries to type my name,
+              <br />
+              but their fingers always betray them.
+              <br />
+              Three letters they press, yet none are correct —
+              <br />
+              a familiar mistake they never detect.
+              <br />
+              <br />
+              <span style={{ color: "rgba(100, 255, 100, 0.35)" }}>
+                What do they type instead?
+              </span>
+              &quot;
             </p>
             <form onSubmit={handlePasswordSubmit} className="flex gap-2">
               <input
@@ -318,10 +271,10 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
                 type="text"
                 value={passwordValue}
                 onChange={(e) => setPasswordValue(e.target.value)}
-                placeholder="enter password..."
+                placeholder="???"
                 autoComplete="off"
                 spellCheck={false}
-                className="bg-transparent border font-mono text-sm px-4 py-2 rounded-lg outline-none w-48 text-center"
+                className="bg-transparent border font-mono text-sm px-4 py-2 rounded-lg outline-none w-36 text-center"
                 style={{
                   borderColor: "rgba(0, 255, 65, 0.3)",
                   color: "#00ff41",
@@ -331,7 +284,7 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
               />
               <button
                 type="submit"
-                className="font-mono text-xs px-3 py-2 rounded-lg border transition-colors"
+                className="font-mono text-xs px-3 py-2 rounded-lg border transition-colors hover:bg-[rgba(0,255,65,0.05)]"
                 style={{
                   borderColor: "rgba(0, 255, 65, 0.3)",
                   color: "#00ff41",
@@ -340,9 +293,54 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
                 &gt;
               </button>
             </form>
-          </motion.div>
+          </div>
         </div>
       )}
+
+      {/* ── Blackout overlay WITH torch hole (pointer-events: none so input is clickable) ── */}
+      <AnimatePresence>
+        {phase === "blackout" && (
+          <motion.div
+            ref={torchRef}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.5, ease: "easeInOut" }}
+            className="fixed inset-0 z-[100] pointer-events-none"
+            style={{
+              background: "black",
+              ["--mx" as string]: `${mousePos.x}px`,
+              ["--my" as string]: `${mousePos.y}px`,
+              maskImage:
+                "radial-gradient(circle 130px at var(--mx) var(--my), transparent 50%, rgba(0,0,0,0.6) 75%, black 100%)",
+              WebkitMaskImage:
+                "radial-gradient(circle 130px at var(--mx) var(--my), transparent 50%, rgba(0,0,0,0.6) 75%, black 100%)",
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Warm torch glow ── */}
+      <AnimatePresence>
+        {phase === "blackout" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2 }}
+            className="fixed z-[99] pointer-events-none"
+            style={{
+              left: mousePos.x - 100,
+              top: mousePos.y - 100,
+              width: 200,
+              height: 200,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle, rgba(255,220,150,0.05) 0%, transparent 70%)",
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Authorized Message ── */}
       <AnimatePresence>
@@ -378,19 +376,17 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
                   className="text-xs font-mono"
                   style={{ color: "rgba(0,255,65,0.4)" }}
                 >
-                  access level: classified
+                  the cat remembers you now
                 </motion.p>
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 2.5 }}
-                  className="mt-8"
+                  className="mt-8 flex gap-3 justify-center"
                 >
                   <button
                     onClick={() => {
-                      setPhase("idle");
                       setShowAuth(false);
-                      setFishVisible(false);
                       setPasswordValue("");
                     }}
                     className="text-xs font-mono px-4 py-2 rounded border transition-all hover:bg-[rgba(0,255,65,0.1)]"
@@ -399,7 +395,17 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
                       color: "rgba(0,255,65,0.6)",
                     }}
                   >
-                    [ return ]
+                    [ continue ]
+                  </button>
+                  <button
+                    onClick={resetGame}
+                    className="text-xs font-mono px-4 py-2 rounded border transition-all hover:bg-[rgba(255,255,255,0.05)]"
+                    style={{
+                      borderColor: "rgba(255,255,255,0.15)",
+                      color: "rgba(255,255,255,0.3)",
+                    }}
+                  >
+                    [ play again ]
                   </button>
                 </motion.div>
               </motion.div>
@@ -408,7 +414,26 @@ export function SecretGame({ catPosition, onFeedCat, isDark }: SecretGameProps) 
         )}
       </AnimatePresence>
 
-      {/* Shake animation for wrong password */}
+      {/* ── Reset button (visible only when authorized, bottom-right corner) ── */}
+      <AnimatePresence>
+        {phase === "authorized" && !showAuth && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ delay: 1 }}
+            onClick={resetGame}
+            className="fixed bottom-4 right-4 z-30 text-[10px] font-mono px-3 py-1.5 rounded border transition-all hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            style={{
+              borderColor: "var(--border)",
+              color: "var(--muted)",
+            }}
+          >
+            reset 🐟
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       <style>{`
         @keyframes shake {
           0%, 100% { transform: translateX(0); }

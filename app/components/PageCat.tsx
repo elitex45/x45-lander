@@ -14,7 +14,8 @@ type CatState =
   | "groom"
   | "run-right"
   | "run-left"
-  | "eat";
+  | "eat"
+  | "cuddle";
 
 interface Cat {
   x: number;
@@ -46,10 +47,12 @@ export function PageCat({
   isDark,
   positionRef,
   fedTrigger,
+  friendly,
 }: {
   isDark: boolean;
   positionRef?: React.MutableRefObject<{ x: number; y: number }>;
-  fedTrigger?: number; // increment to trigger eat animation
+  fedTrigger?: number;
+  friendly?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lastFedTrigger = useRef(0);
@@ -299,8 +302,8 @@ export function PageCat({
         ctx.beginPath();
         ctx.arc(5 * s, -17 * s, 2 * s, 0, Math.PI, false);
         ctx.stroke();
-      } else if (cat.state === "eat") {
-        // Eyes drawn in the eat block above — skip here
+      } else if (cat.state === "eat" || cat.state === "cuddle") {
+        // Eyes drawn in their respective blocks — skip here
       } else if (cat.isBlinking) {
         // Blink — horizontal lines
         ctx.strokeStyle = darkDetail;
@@ -424,6 +427,51 @@ export function PageCat({
         ctx.globalAlpha = 1;
       }
 
+      // ── Cuddle: happy purring ──
+      if (cat.state === "cuddle") {
+        // Body vibrates gently (purring)
+        const purr = Math.sin(time * 20) * 0.5 * s;
+        ctx.translate(purr, 0);
+
+        // Happy squint eyes
+        ctx.strokeStyle = accentEye;
+        ctx.lineWidth = 1.5 * s;
+        ctx.beginPath();
+        ctx.arc(-1 * s, -17 * s, 2.5 * s, Math.PI + 0.3, -0.3, false);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(5 * s, -17 * s, 2.5 * s, Math.PI + 0.3, -0.3, false);
+        ctx.stroke();
+
+        // Blush cheeks
+        ctx.fillStyle = "rgba(255, 150, 150, 0.4)";
+        ctx.beginPath();
+        ctx.ellipse(-4 * s, -14 * s, 2.5 * s, 1.5 * s, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(8 * s, -14 * s, 2.5 * s, 1.5 * s, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Floating hearts (cycle)
+        const heartPhase = time * 1.5;
+        const h1y = -30 * s + Math.sin(heartPhase) * 4 * s;
+        const h2y = -34 * s + Math.sin(heartPhase + 1) * 4 * s;
+        ctx.font = `${5 * s}px serif`;
+        ctx.globalAlpha = 0.5 + Math.sin(heartPhase) * 0.3;
+        ctx.fillText("\u2764\uFE0F", 12 * s + Math.sin(heartPhase * 0.7) * 3, h1y);
+        ctx.globalAlpha = 0.4 + Math.sin(heartPhase + 2) * 0.3;
+        ctx.fillText("\u2764\uFE0F", -10 * s + Math.sin(heartPhase * 0.5) * 3, h2y);
+        ctx.globalAlpha = 1;
+
+        // "prr" text
+        ctx.font = `${4 * s}px monospace`;
+        ctx.fillStyle = isDark ? "rgba(0,255,65,0.3)" : "rgba(232,85,46,0.3)";
+        const prrAlpha = 0.3 + Math.sin(time * 3) * 0.2;
+        ctx.globalAlpha = prrAlpha;
+        ctx.fillText("prr~", 14 * s, -20 * s);
+        ctx.globalAlpha = 1;
+      }
+
       // ── Sleep Zzz ──
       if (cat.state === "sleep") {
         cat.sleepZzz += 0.02;
@@ -531,21 +579,42 @@ export function PageCat({
         cat.stateDuration = 2;
       }
 
-      // React to mouse proximity — startle if very close (but not while eating)
+      // React to mouse proximity
       const mx = mouseRef.current.x;
       const my = mouseRef.current.y;
       const distToMouse = Math.sqrt((mx - cat.x) ** 2 + (my - cat.y + 15) ** 2);
-      if (
-        distToMouse < 60 &&
-        cat.state !== "run-right" &&
-        cat.state !== "run-left" &&
-        cat.state !== "jump" &&
-        cat.state !== "eat"
-      ) {
-        cat.state = mx > cat.x ? "run-left" : "run-right";
-        cat.facingRight = cat.state === "run-right";
-        cat.stateDuration = 1.5 + Math.random();
-        cat.stateTime = 0;
+
+      if (friendly) {
+        // Friendly mode: cuddle when cursor is near
+        if (
+          distToMouse < 80 &&
+          cat.state !== "eat" &&
+          cat.state !== "cuddle"
+        ) {
+          cat.state = "cuddle";
+          cat.facingRight = mx > cat.x;
+          cat.stateTime = 0;
+          cat.stateDuration = 999; // stay cuddly as long as cursor is near
+        } else if (distToMouse >= 100 && cat.state === "cuddle") {
+          // Cursor left — go back to normal but stay chill
+          cat.state = "idle";
+          cat.stateTime = 0;
+          cat.stateDuration = 2 + Math.random() * 2;
+        }
+      } else {
+        // Normal mode: startle if very close
+        if (
+          distToMouse < 60 &&
+          cat.state !== "run-right" &&
+          cat.state !== "run-left" &&
+          cat.state !== "jump" &&
+          cat.state !== "eat"
+        ) {
+          cat.state = mx > cat.x ? "run-left" : "run-right";
+          cat.facingRight = cat.state === "run-right";
+          cat.stateDuration = 1.5 + Math.random();
+          cat.stateTime = 0;
+        }
       }
 
       cat.frame++;
@@ -566,7 +635,7 @@ export function PageCat({
       window.removeEventListener("mousemove", onMouse);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [isDark, fedTrigger, positionRef]);
+  }, [isDark, fedTrigger, positionRef, friendly]);
 
   return (
     <canvas
