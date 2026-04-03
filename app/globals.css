@@ -3,26 +3,44 @@
 @variant dark (&:is(.dark *));
 
 :root {
-  --bg: #ffffff;
-  --fg: #111111;
-  --muted: #666666;
-  --border: #e5e5e5;
-  --accent: #00ff41;
+  --bg: #FEF7F0;
+  --fg: #1A0E08;
+  --muted: #8B6E56;
+  --border: rgba(180, 140, 100, 0.15);
+  --accent: #E8552E;
+  --accent-dim: rgba(232, 85, 46, 0.12);
+  --accent-glow: rgba(232, 85, 46, 0.3);
+  --purple: #C77DBA;
+  --cyan: #D4956B;
+  --sunset-peach: rgba(255, 160, 100, 0.15);
+  --sunset-rose: rgba(244, 114, 140, 0.12);
+  --sunset-lavender: rgba(180, 140, 220, 0.1);
+  --sunset-gold: rgba(255, 200, 80, 0.1);
 }
 
 .dark {
-  --bg: #0b132b;
-  --fg: #c9cdd6;
+  --bg: #050816;
+  --fg: #e0e4ec;
   --muted: #6e7681;
-  --border: #2d3139;
+  --border: rgba(255, 255, 255, 0.06);
   --accent: #00ff41;
+  --accent-dim: rgba(0, 255, 65, 0.1);
+  --accent-glow: rgba(0, 255, 65, 0.4);
+  --purple: #a855f7;
+  --cyan: #06b6d4;
+}
+
+/* ──────────── Base ──────────── */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background-color: var(--bg);
   color: var(--fg);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
 .font-mono, code, pre {
@@ -31,4 +49,435 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+/* ──────────── Noise Overlay ──────────── */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ──────────── Grid Background ──────────── */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, black 20%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, black 20%, transparent 100%);
+  opacity: 0.4;
+}
+
+/* ──────────── Floating Orbs ──────────── */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
+}
+
+/* Dark mode orbs */
+.dark .orb-1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(0, 255, 65, 0.12), transparent 70%);
+  top: -10%;
+  left: -10%;
+  animation: orb-float-1 20s ease-in-out infinite;
+}
+
+.dark .orb-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.1), transparent 70%);
+  bottom: -10%;
+  right: -10%;
+  animation: orb-float-2 25s ease-in-out infinite;
+}
+
+.dark .orb-3 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.08), transparent 70%);
+  top: 40%;
+  left: 50%;
+  animation: orb-float-3 18s ease-in-out infinite;
+}
+
+/* Light mode sunset orbs */
+:root .orb-1 {
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(255, 140, 80, 0.2), rgba(255, 100, 120, 0.08), transparent 70%);
+  top: -15%;
+  right: -10%;
+  left: auto;
+  animation: orb-float-1 22s ease-in-out infinite;
+}
+
+:root .orb-2 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.15), rgba(180, 140, 220, 0.06), transparent 70%);
+  bottom: 10%;
+  left: -15%;
+  right: auto;
+  animation: orb-float-2 28s ease-in-out infinite;
+}
+
+:root .orb-3 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255, 200, 80, 0.12), rgba(255, 160, 100, 0.05), transparent 70%);
+  top: 30%;
+  left: 40%;
+  animation: orb-float-3 20s ease-in-out infinite;
+}
+
+/* Extra sunset orb — lavender sky wash (light only) */
+.orb-4 {
+  display: none;
+}
+
+:root .orb-4 {
+  display: block;
+  width: 800px;
+  height: 400px;
+  background: linear-gradient(180deg, rgba(180, 140, 220, 0.1), rgba(255, 160, 120, 0.06), transparent);
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: orb-float-3 25s ease-in-out infinite;
+}
+
+@keyframes orb-float-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(80px, 60px) scale(1.1); }
+  66% { transform: translate(-40px, 100px) scale(0.95); }
+}
+
+@keyframes orb-float-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-60px, -80px) scale(1.15); }
+  66% { transform: translate(50px, -40px) scale(0.9); }
+}
+
+@keyframes orb-float-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-100px, -60px) scale(1.2); }
+}
+
+/* ──────────── Glitch Text ──────────── */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.glitch::before {
+  color: var(--cyan);
+  animation: glitch-1 3s infinite linear alternate-reverse;
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+}
+
+.glitch::after {
+  color: var(--purple);
+  animation: glitch-2 2s infinite linear alternate-reverse;
+  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+}
+
+@keyframes glitch-1 {
+  0%, 90% { transform: translate(0); }
+  91% { transform: translate(-2px, 1px); }
+  93% { transform: translate(2px, -1px); }
+  95% { transform: translate(-1px, 2px); }
+  97% { transform: translate(1px, -2px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes glitch-2 {
+  0%, 88% { transform: translate(0); }
+  89% { transform: translate(2px, -1px); }
+  92% { transform: translate(-2px, 1px); }
+  94% { transform: translate(1px, 2px); }
+  96% { transform: translate(-1px, -1px); }
+  100% { transform: translate(0); }
+}
+
+/* ──────────── Glass Card ──────────── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+:root:not(.dark) .glass-card {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(200, 160, 120, 0.15);
+  box-shadow: 0 4px 30px rgba(180, 120, 80, 0.04);
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent 50%, rgba(0,255,65,0.1));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.glass-card:hover::before {
+  opacity: 1;
+}
+
+.glass-card:hover {
+  border-color: var(--accent-dim);
+  box-shadow: 0 0 40px -10px var(--accent-dim), 0 20px 60px -20px rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+/* ──────────── Glow Text ──────────── */
+.glow-text {
+  text-shadow: 0 0 20px var(--accent-glow), 0 0 40px var(--accent-dim);
+}
+
+/* ──────────── Tech Pill ──────────── */
+.tech-pill {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.tech-pill:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px -3px var(--accent-dim);
+  transform: translateY(-1px);
+}
+
+/* ──────────── Horizontal Scroll Line ──────────── */
+.scroll-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3;
+}
+
+/* ──────────── Cursor Glow ──────────── */
+.cursor-glow {
+  position: fixed;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-dim), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease;
+  will-change: left, top;
+}
+
+:root:not(.dark) .cursor-glow {
+  background: radial-gradient(circle, rgba(255, 160, 80, 0.08), transparent 70%);
+}
+
+/* ──────────── Section Divider ──────────── */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2rem;
+}
+
+.section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ──────────── Typewriter Cursor ──────────── */
+.typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background-color: var(--accent);
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ──────────── Scan Line ──────────── */
+.scan-line {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.015) 2px,
+    rgba(0, 0, 0, 0.015) 4px
+  );
+}
+
+:root:not(.dark) .scan-line {
+  display: none;
+}
+
+/* ──────────── Sunset sky gradient (light only) ──────────── */
+.sunset-sky {
+  display: none;
+}
+
+:root:not(.dark) .sunset-sky {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 200, 150, 0.08) 0%,
+    rgba(255, 160, 120, 0.05) 20%,
+    rgba(244, 130, 160, 0.04) 40%,
+    rgba(180, 150, 220, 0.03) 60%,
+    transparent 80%
+  );
+}
+
+/* ──────────── Neon border ──────────── */
+.neon-border {
+  border-left: 2px solid var(--accent);
+  box-shadow: -2px 0 10px -2px var(--accent-dim);
+}
+
+/* ──────────── Activity Pulse ──────────── */
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  position: relative;
+}
+
+.pulse-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* ──────────── Smooth Scrollbar (dark) ──────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* ──────────── Social link hover ──────────── */
+.social-link {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.social-link:hover {
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent-dim);
+}
+
+/* ──────────── Footer gradient line ──────────── */
+.gradient-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--purple), var(--cyan), transparent);
+  opacity: 0.4;
+}
+
+/* ──────────── Light mode glitch: warm tones ──────────── */
+:root:not(.dark) .glitch::before {
+  color: #E8552E;
+}
+
+:root:not(.dark) .glitch::after {
+  color: #C77DBA;
+}
+
+:root:not(.dark) .glow-text {
+  text-shadow: 0 0 20px rgba(232, 85, 46, 0.25), 0 0 40px rgba(232, 85, 46, 0.1);
+}
+
+:root:not(.dark) .neon-border {
+  border-left-color: var(--accent);
+  box-shadow: -2px 0 10px -2px rgba(232, 85, 46, 0.15);
+}
+
+:root:not(.dark) .pulse-dot {
+  background: var(--accent);
+}
+
+:root:not(.dark) .pulse-dot::after {
+  border-color: var(--accent);
+}
+
+:root:not(.dark) .grid-bg {
+  opacity: 0.15;
+  mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, black 10%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, black 10%, transparent 100%);
 }
