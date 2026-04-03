@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { useTheme } from "next-themes";
 import { StarField } from "./StarField";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
+import { PageCat } from "./PageCat";
 import { ProjectCard } from "./ProjectCard";
 import { Typewriter } from "./Typewriter";
 import { ThemeToggle } from "./ThemeToggle";
@@ -126,6 +127,7 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
       <div className="sunset-sky" aria-hidden="true" />
       <div className="noise-overlay" aria-hidden="true" />
       <div className="scan-line" aria-hidden="true" />
+      <PageCat isDark={isDark} />
 
       {/* Content */}
       <main className="relative z-10 max-w-2xl mx-auto px-6">
