@@ -9,6 +9,9 @@ import { PageCat } from "./PageCat";
 import { ProjectCard } from "./ProjectCard";
 import { Typewriter } from "./Typewriter";
 import { ThemeToggle } from "./ThemeToggle";
+import { CharacterStagger } from "./CharacterStagger";
+import { MagneticText } from "./MagneticText";
+import { ScrambleText } from "./ScrambleText";
 
 const techStack = [
   { name: "Python", color: "#3b82f6" },
@@ -168,13 +171,14 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
             </motion.p>
 
             <h1 className="text-4xl md:text-5xl font-bold mb-4 font-sans tracking-tight text-[var(--fg)]">
-              Hi, I&apos;m{" "}
+              <CharacterStagger text="Hi, I'm " delay={0.3} stagger={0.04} />
               <span className="glitch glow-text text-[var(--accent)]" data-text="Guru">
-                Guru
+                <CharacterStagger text="Guru" delay={0.6} stagger={0.06} className="text-[var(--accent)]" />
               </span>{" "}
               <motion.span
                 className="inline-block"
-                animate={{ rotate: [0, 14, -8, 14, -4, 10, 0] }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1, rotate: [0, 14, -8, 14, -4, 10, 0] }}
                 transition={{ duration: 2.5, delay: 1.2, ease: "easeInOut" }}
               >
                 👋
@@ -195,16 +199,11 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
               transition={{ delay: 0.5, duration: 0.8 }}
               className="text-base text-[var(--fg)] leading-relaxed mb-6 max-w-lg"
             >
-              Co-founder{" "}
-              <a
-                href="https://github.com/zerufinance"
-                className="text-[var(--accent)] hover:underline glow-text"
-              >
-                @zerufinance
-              </a>
-              . On-chain intelligence builder. Building at the intersection of
-              crypto and AI — wallet reputation scoring, on-chain behavioral
-              analysis, agent identity.
+              <MagneticText
+                text="Co-founder @zerufinance. On-chain intelligence builder. Building at the intersection of crypto and AI — wallet reputation scoring, on-chain behavioral analysis, agent identity."
+                strength={8}
+                radius={100}
+              />
             </motion.p>
 
             <motion.div
@@ -229,7 +228,7 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
           <ScrollReveal>
             <div className="section-label">
               <p className="text-xs text-[var(--muted)] uppercase tracking-[0.2em] font-mono">
-                stack
+                <ScrambleText text="stack" speed={35} />
               </p>
             </div>
           </ScrollReveal>
@@ -267,7 +266,7 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
           <ScrollReveal>
             <div className="section-label">
               <p className="text-xs text-[var(--muted)] uppercase tracking-[0.2em] font-mono">
-                projects
+                <ScrambleText text="projects" speed={35} />
               </p>
             </div>
           </ScrollReveal>
@@ -284,7 +283,7 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
           <ScrollReveal>
             <div className="section-label">
               <p className="text-xs text-[var(--muted)] uppercase tracking-[0.2em] font-mono">
-                philosophy
+                <ScrambleText text="philosophy" speed={35} />
               </p>
             </div>
           </ScrollReveal>
@@ -307,7 +306,7 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
           <ScrollReveal>
             <div className="section-label">
               <p className="text-xs text-[var(--muted)] uppercase tracking-[0.2em] font-mono">
-                connect
+                <ScrambleText text="connect" speed={35} />
               </p>
             </div>
           </ScrollReveal>
