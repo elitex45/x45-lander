@@ -72,6 +72,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
   const [mousePos, setMousePos] = useState({ x: -500, y: -500 });
   const [passwordValue, setPasswordValue] = useState("");
   const [showAuth, setShowAuth] = useState(false);
+  const [blackoutReady, setBlackoutReady] = useState(false); // true once overlay fully fades in
   const inputRef = useRef<HTMLInputElement>(null);
   const torchRef = useRef<HTMLDivElement>(null);
   const feedingRef = useRef(false); // prevent double-feed
@@ -164,6 +165,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
     setShowAuth(false);
     setPasswordValue("");
     setFishPos({ x: 0, y: 0 });
+    setBlackoutReady(false);
     feedingRef.current = false;
   }, []);
 
@@ -241,7 +243,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
       </AnimatePresence>
 
       {/* ── Secret input BEHIND the blackout (only visible through torch) ── */}
-      {phase === "blackout" && (
+      {phase === "blackout" && blackoutReady && (
         <div
           className="relative z-10 flex flex-col items-center justify-center py-24"
           style={{ marginTop: "20px" }}
@@ -306,6 +308,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.5, ease: "easeInOut" }}
+            onAnimationComplete={() => setBlackoutReady(true)}
             className="fixed inset-0 z-[100] pointer-events-none"
             style={{
               background: "black",
@@ -316,7 +319,22 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
               WebkitMaskImage:
                 "radial-gradient(circle 130px at var(--mx) var(--my), transparent 50%, rgba(0,0,0,0.6) 75%, black 100%)",
             }}
-          />
+          >
+            {/* Hint text — always visible on the dark overlay */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8, duration: 1 }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-mono text-center leading-relaxed pointer-events-none select-none"
+              style={{ color: "rgba(255, 255, 255, 0.25)", maxWidth: "260px" }}
+            >
+              let&apos;s see if you&apos;ve got sharp enough eyes
+              <br />
+              <span style={{ color: "rgba(255,255,255,0.12)" }}>
+                something is hidden. find it.
+              </span>
+            </motion.p>
+          </motion.div>
         )}
       </AnimatePresence>
 
