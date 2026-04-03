@@ -260,38 +260,6 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
               but one letter always slips.
             </p>
 
-            {/* Keyboard hint — fades in after 6s */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 6, duration: 1.5 }}
-              className="flex flex-col items-center gap-1"
-            >
-              <p className="text-[10px] font-mono" style={{ color: "rgba(232,85,46,0.4)" }}>
-                hint
-              </p>
-              <div className="flex items-center gap-1 font-mono text-xs">
-                {["c", "a"].map((k) => (
-                  <span
-                    key={k}
-                    className="w-7 h-7 flex items-center justify-center rounded border"
-                    style={{ borderColor: "rgba(232,85,46,0.3)", color: "#E8552E" }}
-                  >
-                    {k}
-                  </span>
-                ))}
-                <span className="flex flex-col items-center gap-0.5">
-                  <span
-                    className="w-7 h-7 flex items-center justify-center rounded border"
-                    style={{ borderColor: "rgba(232,85,46,0.5)", color: "#E8552E", background: "rgba(232,85,46,0.1)" }}
-                  >
-                    r
-                  </span>
-                  <span className="text-[8px]" style={{ color: "rgba(232,85,46,0.3)" }}>↑ t</span>
-                </span>
-              </div>
-            </motion.div>
-
             <form onSubmit={handlePasswordSubmit} className="flex gap-2">
               <input
                 ref={inputRef}
