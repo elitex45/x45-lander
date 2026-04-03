@@ -20,26 +20,37 @@ const techStack = [
   { name: "Claude", color: "#00ff41" },
 ];
 
-const projects = [
+const fallbackProjects = [
   {
+    emoji: "\uD83D\uDD10",
     name: "zerufinance",
     url: "https://github.com/zerufinance",
     desc: "zScore + Zaps. classifying wallet trustworthiness using on-chain history.",
     label: "crypto \u00d7 AI",
   },
   {
+    emoji: "\uD83E\uDD16",
     name: "agentscan.tech",
     url: "https://agentscan.tech",
     desc: "explorer + indexer for AI agents on ERC-8004 identity registry.",
     label: "agent infra",
   },
   {
+    emoji: "\u26A1",
     name: "dualcode",
     url: "https://github.com/elitex45/dualcode",
     desc: "sonnet plans. minimax executes. you ship 2.6x faster and spend 60% less credits.",
     label: "dev tooling",
   },
 ];
+
+interface Project {
+  emoji: string;
+  name: string;
+  url: string;
+  desc: string;
+  label: string;
+}
 
 const activities = [
   {
@@ -109,7 +120,8 @@ const socials = [
   },
 ];
 
-export function HomePage() {
+export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
+  const projects = projectsProp || fallbackProjects;
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
   const { resolvedTheme } = useTheme();
