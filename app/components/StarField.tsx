@@ -88,9 +88,9 @@ export function StarField({ isDark }: { isDark: boolean }) {
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         life: 0,
-        maxLife: 40 + Math.random() * 30,
+        maxLife: 50 + Math.random() * 40,
         size: 1.5 + Math.random() * 1.5,
-        tailLength: 60 + Math.random() * 40,
+        tailLength: 150 + Math.random() * 100,
       });
     };
 
@@ -245,31 +245,43 @@ export function StarField({ isDark }: { isDark: boolean }) {
             continue;
           }
 
-          // Draw tail
-          const tailSteps = 12;
-          for (let t = 0; t < tailSteps; t++) {
-            const tFrac = t / tailSteps;
-            const tx = ss.x - ss.vx * tFrac * (ss.tailLength / (8 + Math.random()));
-            const ty = ss.y - ss.vy * tFrac * (ss.tailLength / (8 + Math.random()));
-            const tAlpha = fade * (1 - tFrac) * 0.6;
-            const tSize = ss.size * (1 - tFrac * 0.8);
+          // Draw long streaming tail as a tapered line
+          const speed = Math.sqrt(ss.vx * ss.vx + ss.vy * ss.vy);
+          const dirX = ss.vx / speed;
+          const dirY = ss.vy / speed;
+          const tailLen = ss.tailLength * fade;
+
+          // Gradient tail using multiple segments
+          const segments = 24;
+          for (let t = 0; t < segments; t++) {
+            const t0 = t / segments;
+            const t1 = (t + 1) / segments;
+            const x0 = ss.x - dirX * tailLen * t0;
+            const y0 = ss.y - dirY * tailLen * t0;
+            const x1 = ss.x - dirX * tailLen * t1;
+            const y1 = ss.y - dirY * tailLen * t1;
+            const alpha = fade * (1 - t0) * 0.7;
+            const width = ss.size * 2 * (1 - t0 * 0.9);
 
             ctx.beginPath();
-            ctx.arc(tx, ty, tSize, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${tAlpha})`;
-            ctx.fill();
+            ctx.moveTo(x0, y0);
+            ctx.lineTo(x1, y1);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+            ctx.lineWidth = width;
+            ctx.lineCap = "round";
+            ctx.stroke();
           }
 
-          // Draw head with glow
+          // Bright head
           ctx.beginPath();
-          ctx.arc(ss.x, ss.y, ss.size * 1.5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 255, 255, ${fade * 0.9})`;
+          ctx.arc(ss.x, ss.y, ss.size * 2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${fade * 0.95})`;
           ctx.fill();
 
           // Head glow
           ctx.beginPath();
-          ctx.arc(ss.x, ss.y, ss.size * 4, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(200, 220, 255, ${fade * 0.15})`;
+          ctx.arc(ss.x, ss.y, ss.size * 5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(200, 220, 255, ${fade * 0.12})`;
           ctx.fill();
         }
       } else {

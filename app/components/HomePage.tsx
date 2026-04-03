@@ -4,7 +4,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { useTheme } from "next-themes";
 import { StarField } from "./StarField";
-import { MouseGlow } from "./MouseGlow";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 import { ProjectCard } from "./ProjectCard";
 import { Typewriter } from "./Typewriter";
@@ -51,21 +50,6 @@ interface Project {
   desc: string;
   label: string;
 }
-
-const activities = [
-  {
-    text: "Building wallet reputation scoring and on-chain behavioral analysis",
-    link: { text: "zeruai.org", url: "https://zeruai.org" },
-  },
-  {
-    text: "Shipping dualcode — minimal two-model system: Sonnet plans, MiniMax executes",
-    link: { text: "dualcode", url: "https://github.com/elitex45/dualcode" },
-  },
-  {
-    text: "Writing about AI workflows, agent systems, and DeFi infrastructure",
-    link: null,
-  },
-];
 
 const socials = [
   {
@@ -135,7 +119,6 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
     <>
       {/* Background layers */}
       <StarField isDark={isDark} />
-      <div className="grid-bg" aria-hidden="true" />
       <div className="orb orb-1" aria-hidden="true" />
       <div className="orb orb-2" aria-hidden="true" />
       <div className="orb orb-3" aria-hidden="true" />
@@ -143,7 +126,6 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
       <div className="sunset-sky" aria-hidden="true" />
       <div className="noise-overlay" aria-hidden="true" />
       <div className="scan-line" aria-hidden="true" />
-      <MouseGlow />
 
       {/* Content */}
       <main className="relative z-10 max-w-2xl mx-auto px-6">
@@ -152,7 +134,7 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-          className="flex justify-between items-center py-8 sticky top-0 z-50 backdrop-blur-md bg-[var(--bg)]/50"
+          className="flex justify-between items-center py-8 sticky top-0 z-50"
         >
           <div className="flex items-center gap-2">
             <div className="pulse-dot" />
@@ -295,47 +277,6 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
           </StaggerContainer>
         </section>
 
-        {/* ════════════ What I'm Doing ════════════ */}
-        <section className="mb-24">
-          <ScrollReveal>
-            <div className="section-label">
-              <p className="text-xs text-[var(--muted)] uppercase tracking-[0.2em] font-mono">
-                what i&apos;m doing
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <StaggerContainer className="space-y-4">
-            {activities.map((item, i) => (
-              <StaggerItem key={i}>
-                <div className="flex gap-4 items-start group">
-                  <span className="text-[var(--accent)] font-mono text-xs mt-1.5 opacity-40 group-hover:opacity-100 transition-opacity">
-                    {i === activities.length - 1 ? "└" : "├"}──
-                  </span>
-                  <p className="text-sm text-[var(--fg)] leading-relaxed">
-                    {item.link ? (
-                      <>
-                        {item.text.split(item.link.text)[0]}
-                        <a
-                          href={item.link.url}
-                          className="text-[var(--accent)] hover:underline glow-text"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {item.link.text}
-                        </a>
-                        {item.text.split(item.link.text)[1]}
-                      </>
-                    ) : (
-                      item.text
-                    )}
-                  </p>
-                </div>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </section>
-
         {/* ════════════ Philosophy ════════════ */}
         <section className="mb-24">
           <ScrollReveal>
@@ -351,10 +292,6 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
               <p className="text-sm text-[var(--muted)] leading-relaxed">
                 I build tools that solve real problems, use AI as leverage not a
                 crutch, and ship before I&apos;m ready.
-              </p>
-              <p className="text-sm text-[var(--muted)] leading-relaxed">
-                Currently running Sonnet for thinking and MiniMax for everything
-                else. Game theory lens on everything.
               </p>
               <p className="text-sm font-semibold text-[var(--accent)] glow-text">
                 &ldquo;the universe always delivers 🌌&rdquo;
