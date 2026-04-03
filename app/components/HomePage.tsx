@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { StarField } from "./StarField";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
@@ -12,6 +12,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { CharacterStagger } from "./CharacterStagger";
 import { MagneticText } from "./MagneticText";
 import { ScrambleText } from "./ScrambleText";
+import { SecretGame } from "./SecretGame";
 
 const techStack = [
   { name: "Python", color: "#3b82f6" },
@@ -115,6 +116,13 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
+  // Secret game state
+  const catPositionRef = useRef({ x: 200, y: 0 });
+  const [fedTrigger, setFedTrigger] = useState(0);
+  const handleFeedCat = useCallback(() => {
+    setFedTrigger((prev) => prev + 1);
+  }, []);
+
   // Parallax values for hero content
   const heroY = useTransform(scrollYProgress, [0, 0.3], [0, -100]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
@@ -130,7 +138,8 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
       <div className="sunset-sky" aria-hidden="true" />
       <div className="noise-overlay" aria-hidden="true" />
       <div className="scan-line" aria-hidden="true" />
-      <PageCat isDark={isDark} />
+      <PageCat isDark={isDark} positionRef={catPositionRef} fedTrigger={fedTrigger} />
+      <SecretGame catPosition={catPositionRef} onFeedCat={handleFeedCat} isDark={isDark} />
 
       {/* Content */}
       <main className="relative z-10 max-w-2xl mx-auto px-6">

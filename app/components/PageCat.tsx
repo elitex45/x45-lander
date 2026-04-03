@@ -13,7 +13,8 @@ type CatState =
   | "look"
   | "groom"
   | "run-right"
-  | "run-left";
+  | "run-left"
+  | "eat";
 
 interface Cat {
   x: number;
@@ -41,8 +42,17 @@ const GROUND_OFFSET = 40; // px from bottom of viewport
 const WALK_SPEED = 1.2;
 const RUN_SPEED = 3;
 
-export function PageCat({ isDark }: { isDark: boolean }) {
+export function PageCat({
+  isDark,
+  positionRef,
+  fedTrigger,
+}: {
+  isDark: boolean;
+  positionRef?: React.MutableRefObject<{ x: number; y: number }>;
+  fedTrigger?: number; // increment to trigger eat animation
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastFedTrigger = useRef(0);
   const catRef = useRef<Cat>({
     x: 200,
     y: 0,
@@ -289,6 +299,8 @@ export function PageCat({ isDark }: { isDark: boolean }) {
         ctx.beginPath();
         ctx.arc(5 * s, -17 * s, 2 * s, 0, Math.PI, false);
         ctx.stroke();
+      } else if (cat.state === "eat") {
+        // Eyes drawn in the eat block above — skip here
       } else if (cat.isBlinking) {
         // Blink — horizontal lines
         ctx.strokeStyle = darkDetail;
@@ -377,6 +389,39 @@ export function PageCat({ isDark }: { isDark: boolean }) {
         ctx.moveTo(ox * s, oy * s);
         ctx.lineTo(ex * s, ey * s);
         ctx.stroke();
+      }
+
+      // ── Eat: happy squint + fish ──
+      if (cat.state === "eat") {
+        const eatBounce = Math.sin(time * 8) * 1.5 * s;
+        // Fish in mouth
+        ctx.font = `${10 * s}px serif`;
+        ctx.fillText("\uD83D\uDC1F", 8 * s, -10 * s + eatBounce);
+        // Happy squint eyes (^  ^)
+        ctx.strokeStyle = accentEye;
+        ctx.lineWidth = 1.5 * s;
+        ctx.beginPath();
+        ctx.arc(-1 * s, -17 * s, 2.5 * s, Math.PI + 0.3, -0.3, false);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(5 * s, -17 * s, 2.5 * s, Math.PI + 0.3, -0.3, false);
+        ctx.stroke();
+        // Blush
+        ctx.fillStyle = "rgba(255, 150, 150, 0.35)";
+        ctx.beginPath();
+        ctx.ellipse(-4 * s, -14 * s, 2.5 * s, 1.5 * s, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(8 * s, -14 * s, 2.5 * s, 1.5 * s, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Hearts floating up
+        const heartY1 = -28 * s - cat.stateTime * 20;
+        const heartY2 = -32 * s - cat.stateTime * 15;
+        ctx.font = `${6 * s}px serif`;
+        ctx.globalAlpha = Math.max(0, 1 - cat.stateTime * 0.6);
+        ctx.fillText("\u2764\uFE0F", 12 * s + Math.sin(time * 3) * 3, heartY1);
+        ctx.fillText("\u2764\uFE0F", -8 * s + Math.sin(time * 2.5) * 3, heartY2);
+        ctx.globalAlpha = 1;
       }
 
       // ── Sleep Zzz ──
@@ -473,7 +518,20 @@ export function PageCat({ isDark }: { isDark: boolean }) {
         pickNextState();
       }
 
-      // React to mouse proximity — startle if very close
+      // Expose position
+      if (positionRef) {
+        positionRef.current = { x: cat.x, y: cat.y };
+      }
+
+      // Check for fed trigger
+      if (fedTrigger && fedTrigger > lastFedTrigger.current) {
+        lastFedTrigger.current = fedTrigger;
+        cat.state = "eat";
+        cat.stateTime = 0;
+        cat.stateDuration = 2;
+      }
+
+      // React to mouse proximity — startle if very close (but not while eating)
       const mx = mouseRef.current.x;
       const my = mouseRef.current.y;
       const distToMouse = Math.sqrt((mx - cat.x) ** 2 + (my - cat.y + 15) ** 2);
@@ -481,9 +539,9 @@ export function PageCat({ isDark }: { isDark: boolean }) {
         distToMouse < 60 &&
         cat.state !== "run-right" &&
         cat.state !== "run-left" &&
-        cat.state !== "jump"
+        cat.state !== "jump" &&
+        cat.state !== "eat"
       ) {
-        // Startle! Run away from cursor
         cat.state = mx > cat.x ? "run-left" : "run-right";
         cat.facingRight = cat.state === "run-right";
         cat.stateDuration = 1.5 + Math.random();
@@ -508,7 +566,7 @@ export function PageCat({ isDark }: { isDark: boolean }) {
       window.removeEventListener("mousemove", onMouse);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [isDark]);
+  }, [isDark, fedTrigger, positionRef]);
 
   return (
     <canvas
