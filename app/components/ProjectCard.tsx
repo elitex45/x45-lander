@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 interface ProjectCardProps {
   emoji: string;
@@ -80,28 +81,51 @@ export function ProjectCard({ emoji, name, url, desc, label, index }: ProjectCar
       className="glass-card p-6 group"
     >
       <div className="flex items-center justify-between mb-3">
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-base font-semibold text-[var(--fg)] hover:text-[var(--accent)] transition-colors flex items-center gap-2"
-        >
-          <span className="text-sm">{emoji}</span>
-          {name}
-          <svg
-            className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-70 group-hover:translate-x-0 transition-all"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        {url.startsWith("/") ? (
+          <Link
+            href={url}
+            className="text-base font-semibold text-[var(--fg)] hover:text-[var(--accent)] transition-colors flex items-center gap-2"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 17L17 7M17 7H7M17 7v10"
-            />
-          </svg>
-        </a>
+            <span className="text-sm">{emoji}</span>
+            {name}
+            <svg
+              className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-70 group-hover:translate-x-0 transition-all"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 17L17 7M17 7H7M17 7v10"
+              />
+            </svg>
+          </Link>
+        ) : (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-base font-semibold text-[var(--fg)] hover:text-[var(--accent)] transition-colors flex items-center gap-2"
+          >
+            <span className="text-sm">{emoji}</span>
+            {name}
+            <svg
+              className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-70 group-hover:translate-x-0 transition-all"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 17L17 7M17 7H7M17 7v10"
+              />
+            </svg>
+          </a>
+        )}
         <span
           className={`text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full border ${
             labelColors[label] || "text-[var(--muted)]"

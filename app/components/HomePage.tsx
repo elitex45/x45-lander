@@ -2,7 +2,7 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
-import { useTheme } from "next-themes";
+import { useTheme } from "../lib/theme";
 import Link from "next/link";
 import { StarField } from "./StarField";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
@@ -25,37 +25,18 @@ const techStack = [
   { name: "Claude", color: "#00ff41" },
 ];
 
-const fallbackProjects = [
+// In-repo, hosted projects. Each one is a live tool you can open in the
+// browser — no GitHub-readme parsing, no shitty dead links, just things
+// that actually run.
+const liveProjects = [
   {
-    emoji: "\uD83D\uDD10",
-    name: "zerufinance",
-    url: "https://github.com/zerufinance",
-    desc: "zScore + Zaps. classifying wallet trustworthiness using on-chain history.",
-    label: "crypto \u00d7 AI",
-  },
-  {
-    emoji: "\uD83E\uDD16",
-    name: "agentscan.tech",
-    url: "https://agentscan.tech",
-    desc: "explorer + indexer for AI agents on ERC-8004 identity registry.",
-    label: "agent infra",
-  },
-  {
-    emoji: "\u26A1",
-    name: "dualcode",
-    url: "https://github.com/elitex45/dualcode",
-    desc: "sonnet plans. minimax executes. you ship 2.6x faster and spend 60% less credits.",
-    label: "dev tooling",
+    emoji: "📈",
+    name: "perps-replay",
+    url: "/projects/perps-replay",
+    desc: "bar-by-bar replay of any binance perp with full paper trading — limit/stop/tp/sl, leverage, liquidations. free, in-browser, no signup. built because every replay tool is paywalled.",
+    label: "trading",
   },
 ];
-
-interface Project {
-  emoji: string;
-  name: string;
-  url: string;
-  desc: string;
-  label: string;
-}
 
 const socials = [
   {
@@ -110,8 +91,8 @@ const socials = [
   },
 ];
 
-export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
-  const projects = projectsProp || fallbackProjects;
+export function HomePage() {
+  const projects = liveProjects;
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
   const { resolvedTheme } = useTheme();

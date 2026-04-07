@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
   EngineState,
   OrderDraft,
@@ -18,6 +18,7 @@ import {
 import { Kline, defaultMonthRange, loadKlinesRange } from "../lib/kline";
 import { Interval } from "../lib/symbols";
 import { load, save } from "../lib/storage";
+import type { Drawing, DrawingTool } from "../lib/drawings";
 
 type Action =
   | { type: "loadBars"; bars: Kline[] }
@@ -91,13 +92,13 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
   }, [state.playing, state.speedBarsPerSec, state.bars.length]);
 
   // ───── bar loader: re-fetch when symbol/interval/range changes ─────
-  const loadingRef = useRef(false);
-  const [loadKey, bumpLoadKey] = useReducer((x: number) => x + 1, 0);
+  const [loading, setLoading] = useState(false);
+  const [drawings, setDrawings] = useState<Drawing[]>([]);
+  const [activeTool, setActiveTool] = useState<DrawingTool>("none");
 
   useEffect(() => {
     let cancelled = false;
-    loadingRef.current = true;
-    bumpLoadKey();
+    setLoading(true);
     (async () => {
       try {
         const bars = await loadKlinesRange(
@@ -109,9 +110,9 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
         if (cancelled) return;
         dispatch({ type: "loadBars", bars });
 
-        // Try to hydrate persisted account/cursor for this symbol+interval, but
-        // ONLY if the persisted range matches — otherwise the cursor index is
-        // meaningless against the new bar set.
+        // Try to hydrate persisted account/cursor/drawings for this symbol+
+        // interval, but ONLY if the persisted range matches — otherwise the
+        // cursor index is meaningless against the new bar set.
         const persisted = load(state.symbol, state.interval);
         if (
           persisted &&
@@ -124,10 +125,13 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
             cursor: persisted.cursor,
             account: persisted.account,
           });
+          setDrawings(persisted.drawings);
+        } else {
+          // Different range or no save → start fresh drawings for this pair.
+          setDrawings(persisted?.drawings ?? []);
         }
       } finally {
-        loadingRef.current = false;
-        bumpLoadKey();
+        if (!cancelled) setLoading(false);
       }
     })();
     return () => {
@@ -135,7 +139,7 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
     };
   }, [state.symbol, state.interval, rangeRef.current.from, rangeRef.current.to]);
 
-  // ───── persist on change (debounced via rIC) ─────
+  // ───── persist on change (debounced) ─────
   const saveTimerRef = useRef<number | null>(null);
   useEffect(() => {
     if (state.bars.length === 0) return;
@@ -148,12 +152,20 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
         cursor: state.cursor,
         fromMonth: rangeRef.current.from,
         toMonth: rangeRef.current.to,
+        drawings,
       });
     }, 250);
     return () => {
       if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
     };
-  }, [state.account, state.cursor, state.symbol, state.interval, state.bars.length]);
+  }, [
+    state.account,
+    state.cursor,
+    state.symbol,
+    state.interval,
+    state.bars.length,
+    drawings,
+  ]);
 
   // ───── action helpers ─────
   const play = useCallback(() => dispatch({ type: "play" }), []);
@@ -190,12 +202,17 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
     []
   );
 
+  // ───── drawing helpers ─────
+  const addDrawing = useCallback((d: Drawing) => {
+    setDrawings((prev) => [...prev, d]);
+  }, []);
+  const clearDrawings = useCallback(() => setDrawings([]), []);
+
   return {
     state,
     range: rangeRef.current,
     setRange,
-    loading: loadingRef.current,
-    loadKey,
+    loading,
     play,
     pause,
     step,
@@ -206,5 +223,10 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
     close,
     resetAccount: resetAcct,
     switchPair,
+    drawings,
+    addDrawing,
+    clearDrawings,
+    activeTool,
+    setActiveTool,
   };
 }

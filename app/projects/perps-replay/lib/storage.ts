@@ -7,6 +7,7 @@
 
 import type { Account } from "./engine";
 import { freshAccount } from "./engine";
+import type { Drawing } from "./drawings";
 
 const NS = "x45.perps-replay.v1";
 
@@ -16,6 +17,8 @@ type Persisted = {
   cursor: number;
   fromMonth: string;
   toMonth: string;
+  // Optional so existing v1 saves (which predate drawings) still load.
+  drawings?: Drawing[];
 };
 
 function key(symbol: string, interval: string) {
@@ -25,7 +28,13 @@ function key(symbol: string, interval: string) {
 export function save(
   symbol: string,
   interval: string,
-  data: { account: Account; cursor: number; fromMonth: string; toMonth: string }
+  data: {
+    account: Account;
+    cursor: number;
+    fromMonth: string;
+    toMonth: string;
+    drawings: Drawing[];
+  }
 ) {
   if (typeof window === "undefined") return;
   try {
@@ -39,7 +48,13 @@ export function save(
 export function load(
   symbol: string,
   interval: string
-): { account: Account; cursor: number; fromMonth: string; toMonth: string } | null {
+): {
+  account: Account;
+  cursor: number;
+  fromMonth: string;
+  toMonth: string;
+  drawings: Drawing[];
+} | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(key(symbol, interval));
@@ -51,6 +66,7 @@ export function load(
       cursor: parsed.cursor,
       fromMonth: parsed.fromMonth,
       toMonth: parsed.toMonth,
+      drawings: parsed.drawings ?? [],
     };
   } catch {
     return null;

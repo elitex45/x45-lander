@@ -30,6 +30,10 @@ export type Order = {
   parentPositionId?: string;
   leverage: number;
   createdAtMs: number;
+  // For limit/stop orders, the user may pre-attach TP/SL prices that should
+  // be wired up to the resulting position once the order fires.
+  pendingTp?: number;
+  pendingSl?: number;
 };
 
 export type ClosedTrade = {
@@ -110,15 +114,16 @@ function unrealizedPnl(p: Position, mark: number): number {
     : (p.entryPx - mark) * p.size;
 }
 
-function calcLiquidationPx(
+// Exported so the UI can preview liq before the user submits an order.
+// Simplified isolated-margin liquidation:
+//   long:  entry * (1 - 1/lev + mmr)
+//   short: entry * (1 + 1/lev - mmr)
+export function calcLiquidationPx(
   side: Side,
   entryPx: number,
   leverage: number,
   mmr: number
 ): number {
-  // Simplified isolated-margin liquidation:
-  //   long:  entry * (1 - 1/lev + mmr)
-  //   short: entry * (1 + 1/lev - mmr)
   if (side === "long") return entryPx * (1 - 1 / leverage + mmr);
   return entryPx * (1 + 1 / leverage - mmr);
 }
@@ -164,6 +169,11 @@ export type OrderDraft = {
   leverage: number;
   reduceOnly?: boolean;
   parentPositionId?: string;
+  // Optional auto-attached TP/SL prices. For market orders these wire up to
+  // the resulting position immediately. For limit/stop orders they are stored
+  // on the pending order and attached the moment it fires.
+  tp?: number;
+  sl?: number;
 };
 
 export function placeOrder(state: EngineState, draft: OrderDraft): EngineState {
@@ -176,7 +186,16 @@ export function placeOrder(state: EngineState, draft: OrderDraft): EngineState {
   if (draft.leverage < 1 || draft.leverage > meta.maxLeverage) return state;
 
   if (draft.type === "market") {
-    return openPositionAt(state, draft.side, draft.size, draft.leverage, bar.close, bar.closeTime);
+    const opened = openPositionAt(
+      state,
+      draft.side,
+      draft.size,
+      draft.leverage,
+      bar.close,
+      bar.closeTime
+    );
+    if (!opened.position) return opened.state;
+    return attachTpSl(opened.state, opened.position, draft.tp, draft.sl, bar.closeTime);
   }
 
   // Pending order
@@ -192,11 +211,63 @@ export function placeOrder(state: EngineState, draft: OrderDraft): EngineState {
     parentPositionId: draft.parentPositionId,
     leverage: draft.leverage,
     createdAtMs: bar.closeTime,
+    pendingTp: draft.tp,
+    pendingSl: draft.sl,
   };
   return {
     ...state,
     account: { ...state.account, openOrders: [...state.account.openOrders, order] },
   };
+}
+
+// Register reduceOnly TP/SL orders against an existing position.
+function attachTpSl(
+  state: EngineState,
+  pos: Position,
+  tp: number | undefined,
+  sl: number | undefined,
+  ts: number
+): EngineState {
+  let s = state;
+  const closeSide: Side = pos.side === "long" ? "short" : "long";
+  const newOrders: Order[] = [];
+  if (tp && tp > 0) {
+    newOrders.push({
+      id: newId("ord"),
+      symbol: pos.symbol,
+      side: closeSide,
+      type: "tp",
+      size: pos.size,
+      triggerPx: tp,
+      reduceOnly: true,
+      parentPositionId: pos.id,
+      leverage: pos.leverage,
+      createdAtMs: ts,
+    });
+  }
+  if (sl && sl > 0) {
+    newOrders.push({
+      id: newId("ord"),
+      symbol: pos.symbol,
+      side: closeSide,
+      type: "sl",
+      size: pos.size,
+      triggerPx: sl,
+      reduceOnly: true,
+      parentPositionId: pos.id,
+      leverage: pos.leverage,
+      createdAtMs: ts,
+    });
+  }
+  if (newOrders.length === 0) return s;
+  s = {
+    ...s,
+    account: {
+      ...s.account,
+      openOrders: [...s.account.openOrders, ...newOrders],
+    },
+  };
+  return s;
 }
 
 export function cancelOrder(state: EngineState, orderId: string): EngineState {
@@ -223,6 +294,8 @@ export function closePosition(
 
 // Open a new position at price `px`. The fill price is whatever the caller
 // passes (close for market opens, trigger for limit/stop fills).
+// Returns both the new state AND the new position object so callers can
+// attach reduceOnly TP/SL orders to it without searching the array.
 function openPositionAt(
   state: EngineState,
   side: Side,
@@ -230,14 +303,14 @@ function openPositionAt(
   leverage: number,
   px: number,
   ts: number
-): EngineState {
+): { state: EngineState; position: Position | null } {
   const meta = getSymbolMeta(state.symbol);
-  if (!meta) return state;
+  if (!meta) return { state, position: null };
   const notional = px * size;
   const margin = notional / leverage;
   if (margin > freeMargin(state.account)) {
     // not enough free margin — silently no-op (UI should pre-check)
-    return state;
+    return { state, position: null };
   }
   const liquidationPx = calcLiquidationPx(side, px, leverage, meta.mmr);
   const pos: Position = {
@@ -252,11 +325,14 @@ function openPositionAt(
     openedAtMs: ts,
   };
   return {
-    ...state,
-    account: {
-      ...state.account,
-      positions: [...state.account.positions, pos],
+    state: {
+      ...state,
+      account: {
+        ...state.account,
+        positions: [...state.account.positions, pos],
+      },
     },
+    position: pos,
   };
 }
 
@@ -359,7 +435,7 @@ export function tickForward(state: EngineState): EngineState {
         s = realizeClose(s, parent, o.triggerPx, fraction, bar.closeTime, reason);
       }
     } else {
-      s = openPositionAt(
+      const opened = openPositionAt(
         s,
         o.side,
         o.size,
@@ -367,6 +443,10 @@ export function tickForward(state: EngineState): EngineState {
         o.triggerPx,
         bar.closeTime
       );
+      s = opened.state;
+      if (opened.position && (o.pendingTp || o.pendingSl)) {
+        s = attachTpSl(s, opened.position, o.pendingTp, o.pendingSl, bar.closeTime);
+      }
     }
   }
 

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { ReplayHook } from "../hooks/useReplayEngine";
 import type { OrderType, Side } from "../lib/engine";
-import { selectAccountStats } from "../lib/engine";
+import { calcLiquidationPx, selectAccountStats } from "../lib/engine";
 import { getSymbolMeta } from "../lib/symbols";
 
 export function OrderTicket({ engine }: { engine: ReplayHook }) {
@@ -39,44 +39,29 @@ export function OrderTicket({ engine }: { engine: ReplayHook }) {
     enoughMargin &&
     validTrigger;
 
+  const tpNum = Number(tp);
+  const slNum = Number(sl);
+  const tpValid = tp === "" || (Number.isFinite(tpNum) && tpNum > 0);
+  const slValid = sl === "" || (Number.isFinite(slNum) && slNum > 0);
+
+  // Liquidation preview — what the resulting position's liq price would be
+  // if the user submitted right now. Uses the would-be fill price.
+  const previewLiq =
+    fillPx > 0 && leverage >= 1
+      ? calcLiquidationPx(side, fillPx, leverage, meta.mmr)
+      : null;
+
   const submit = () => {
-    if (!canSubmit) return;
+    if (!canSubmit || !tpValid || !slValid) return;
     place({
       side,
       type,
       size: sizeBase,
       triggerPx: type === "market" ? undefined : triggerNum,
       leverage,
+      tp: tp ? tpNum : undefined,
+      sl: sl ? slNum : undefined,
     });
-    // Then attach TP/SL as reduceOnly orders against the (now-likely-open) position.
-    // Note: for limit/stop, the parent doesn't exist yet — TP/SL still placed,
-    // they'll fire only after the parent fills. Simple model.
-    if (tp) {
-      const tpNum = Number(tp);
-      if (Number.isFinite(tpNum) && tpNum > 0) {
-        place({
-          side: side === "long" ? "short" : "long",
-          type: "tp",
-          size: sizeBase,
-          triggerPx: tpNum,
-          leverage,
-          reduceOnly: true,
-        });
-      }
-    }
-    if (sl) {
-      const slNum = Number(sl);
-      if (Number.isFinite(slNum) && slNum > 0) {
-        place({
-          side: side === "long" ? "short" : "long",
-          type: "sl",
-          size: sizeBase,
-          triggerPx: slNum,
-          leverage,
-          reduceOnly: true,
-        });
-      }
-    }
   };
 
   return (
@@ -198,12 +183,21 @@ export function OrderTicket({ engine }: { engine: ReplayHook }) {
         </label>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-[10px] text-[var(--muted)]">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-[var(--muted)] pt-1 border-t border-[var(--border)]">
         <div>
           size: <span className="text-[var(--fg)]">{sizeBase.toFixed(meta.qtyPrecision)}</span>
         </div>
         <div>
           margin: <span className="text-[var(--fg)]">{marginNeeded.toFixed(2)}</span>
+        </div>
+        <div>
+          fill: <span className="text-[var(--fg)]">{fillPx > 0 ? fillPx.toFixed(meta.pricePrecision) : "—"}</span>
+        </div>
+        <div>
+          liq:{" "}
+          <span className="text-[#ef4444]">
+            {previewLiq ? previewLiq.toFixed(meta.pricePrecision) : "—"}
+          </span>
         </div>
       </div>
 

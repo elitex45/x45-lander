@@ -3,6 +3,7 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 import { Providers } from "./providers";
+import { NO_FLASH_SCRIPT } from "./lib/theme";
 
 export const metadata: Metadata = {
   title: "Guru — On-chain intelligence builder",
@@ -29,6 +30,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Set the theme class before React hydrates to prevent a flash. */}
+        <script dangerouslySetInnerHTML={{ __html: NO_FLASH_SCRIPT }} />
+      </head>
       <body
         className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}
       >
