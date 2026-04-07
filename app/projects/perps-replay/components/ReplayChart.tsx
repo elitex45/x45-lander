@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   CandlestickData,
   CandlestickSeries,
@@ -8,6 +8,8 @@ import {
   IChartApi,
   ISeriesApi,
   IPriceLine,
+  LineData,
+  LineSeries,
   Time,
   UTCTimestamp,
   createChart,
@@ -18,8 +20,14 @@ import {
 import { useTheme } from "@/app/lib/theme";
 import type { Kline } from "../lib/kline";
 import type { ClosedTrade, Order, Position } from "../lib/engine";
-import type { Drawing, DrawingPoint, DrawingTool } from "../lib/drawings";
-import { newDrawingId } from "../lib/drawings";
+import {
+  ALL_INDICATORS,
+  INDICATOR_META,
+  IndicatorId,
+  IndicatorVisibility,
+  computeEMA,
+  computeVWAP,
+} from "../lib/indicators";
 
 type Props = {
   bars: Kline[]; // already sliced to [0..cursor]
@@ -28,11 +36,8 @@ type Props = {
   closedTrades: ClosedTrade[];
   symbol: string;
   loading: boolean;
-  drawings: Drawing[];
-  addDrawing: (d: Drawing) => void;
-  clearDrawings: () => void;
-  activeTool: DrawingTool;
-  setActiveTool: (t: DrawingTool) => void;
+  indicators: IndicatorVisibility;
+  toggleIndicator: (id: IndicatorId) => void;
 };
 
 function readVar(name: string): string {
@@ -57,9 +62,6 @@ function readPalette() {
 const CANDLE_UP = "#22c55e";
 const CANDLE_DOWN = "#ef4444";
 
-// Drawing colors — also hard-coded for theme stability.
-const DRAW_COLOR = "#facc15"; // amber
-
 const LOADING_QUOTES = [
   "summoning candles from the binance vault…",
   "asking the price gods nicely…",
@@ -82,17 +84,18 @@ export function ReplayChart({
   closedTrades,
   symbol,
   loading,
-  drawings,
-  addDrawing,
-  clearDrawings,
-  activeTool,
-  setActiveTool,
+  indicators,
+  toggleIndicator,
 }: Props) {
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const chartContainerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+  const indicatorSeriesRef = useRef<Record<IndicatorId, ISeriesApi<"Line"> | null>>({
+    vwap: null,
+    ema20: null,
+    ema50: null,
+  });
   const priceLinesRef = useRef<IPriceLine[]>([]);
   const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
   const lastBarsLenRef = useRef(0);
@@ -100,25 +103,10 @@ export function ReplayChart({
 
   const { resolvedTheme } = useTheme();
 
-  // Re-render counter bumped on every visible-range change so the SVG
-  // overlay re-projects drawings without us tracking pixel coords manually.
-  const [projectionTick, bumpProjection] = useState(0);
-
-  // In-progress drawing draft (first click captured, second click pending).
-  // Stored in DATA space (time/price) so it survives re-projection during
-  // mouse move.
-  const [draft, setDraft] = useState<{
-    type: "trendline" | "rect";
-    p1: DrawingPoint;
-    p2: DrawingPoint;
-  } | null>(null);
-
-  // Funny loading quote — picked once per "loading became true" transition.
+  // Funny loading quote — re-rolled on each load transition.
   const [loadingQuote, setLoadingQuote] = useState(LOADING_QUOTES[0]);
   useEffect(() => {
     if (!loading) return;
-    // Re-roll the quote on each load transition. setState in effect is fine
-    // here — we're reacting to an external boolean prop, not driving render.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingQuote(
       LOADING_QUOTES[Math.floor(Math.random() * LOADING_QUOTES.length)]
@@ -127,7 +115,7 @@ export function ReplayChart({
 
   // ───── mount chart once ─────
   useEffect(() => {
-    const el = chartContainerRef.current;
+    const el = containerRef.current;
     if (!el) return;
 
     const palette = readPalette();
@@ -171,24 +159,31 @@ export function ReplayChart({
       scaleMargins: { top: 0.85, bottom: 0 },
     });
 
+    // Indicator line series — created once, data fed in a separate effect.
+    // priceLineVisible:false keeps them from cluttering the right-axis label.
+    for (const id of ALL_INDICATORS) {
+      indicatorSeriesRef.current[id] = chart.addSeries(LineSeries, {
+        color: INDICATOR_META[id].color,
+        lineWidth: 2,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      });
+    }
+
     chartRef.current = chart;
     candleRef.current = candle;
     volRef.current = vol;
     markersPluginRef.current = createSeriesMarkers(candle);
 
-    // Re-project drawings on pan/zoom/resize.
-    const ts = chart.timeScale();
-    const onRangeChange = () => bumpProjection((x) => x + 1);
-    ts.subscribeVisibleTimeRangeChange(onRangeChange);
-
     return () => {
-      ts.unsubscribeVisibleTimeRangeChange(onRangeChange);
       chart.remove();
       chartRef.current = null;
       candleRef.current = null;
       volRef.current = null;
       markersPluginRef.current = null;
       priceLinesRef.current = [];
+      indicatorSeriesRef.current = { vwap: null, ema20: null, ema50: null };
     };
   }, []);
 
@@ -264,6 +259,55 @@ export function ReplayChart({
     lastBarsLenRef.current = bars.length;
     lastSymbolRef.current = symbol;
   }, [bars, symbol]);
+
+  // ───── feed indicator data ─────
+  // Recomputed on every bar advance + visibility toggle. setData is fine
+  // since we usually only have hundreds-thousands of points and the chart
+  // optimises internally.
+  useEffect(() => {
+    const series = indicatorSeriesRef.current;
+    if (!series.vwap || !series.ema20 || !series.ema50) return;
+
+    if (bars.length === 0) {
+      for (const id of ALL_INDICATORS) {
+        series[id]?.setData([]);
+      }
+      return;
+    }
+
+    if (indicators.vwap) {
+      const data: LineData<UTCTimestamp>[] = computeVWAP(bars).map((p) => ({
+        time: p.time as UTCTimestamp,
+        value: p.value,
+      }));
+      series.vwap.setData(data);
+      series.vwap.applyOptions({ visible: true });
+    } else {
+      series.vwap.applyOptions({ visible: false });
+    }
+
+    if (indicators.ema20) {
+      const data: LineData<UTCTimestamp>[] = computeEMA(bars, 20).map((p) => ({
+        time: p.time as UTCTimestamp,
+        value: p.value,
+      }));
+      series.ema20.setData(data);
+      series.ema20.applyOptions({ visible: true });
+    } else {
+      series.ema20.applyOptions({ visible: false });
+    }
+
+    if (indicators.ema50) {
+      const data: LineData<UTCTimestamp>[] = computeEMA(bars, 50).map((p) => ({
+        time: p.time as UTCTimestamp,
+        value: p.value,
+      }));
+      series.ema50.setData(data);
+      series.ema50.applyOptions({ visible: true });
+    } else {
+      series.ema50.applyOptions({ visible: false });
+    }
+  }, [bars, indicators]);
 
   // ───── price lines for positions + open orders ─────
   useEffect(() => {
@@ -353,270 +397,36 @@ export function ReplayChart({
     plugin.setMarkers(markers);
   }, [closedTrades, symbol]);
 
-  // ───── drawing layer: pixel projection ─────
-  // Drawings live in (time, price) space but the SVG needs (x, y) pixels.
-  // We project inside an effect (not during render) so we can read the
-  // lightweight-charts refs safely under the React 19 ref-access rules.
-  // The effect re-runs on every projectionTick (chart pan/zoom/resize),
-  // bars change, drawings change, and draft change.
-  type Projected =
-    | {
-        id: string;
-        kind: "trendline";
-        x1: number;
-        y1: number;
-        x2: number;
-        y2: number;
-      }
-    | { id: string; kind: "hline"; y: number }
-    | {
-        id: string;
-        kind: "rect";
-        x1: number;
-        y1: number;
-        x2: number;
-        y2: number;
-      };
-
-  const [projected, setProjected] = useState<Projected[]>([]);
-
-  useEffect(() => {
-    const chart = chartRef.current;
-    const candle = candleRef.current;
-    if (!chart || !candle) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setProjected([]);
-      return;
-    }
-    const ts = chart.timeScale();
-
-    const projectPoint = (pt: DrawingPoint) => {
-      const x = ts.timeToCoordinate(pt.time as UTCTimestamp);
-      const y = candle.priceToCoordinate(pt.price);
-      if (x === null || y === null) return null;
-      return { x, y };
-    };
-
-    const out: Projected[] = [];
-    for (const d of drawings) {
-      if (d.type === "trendline") {
-        const a = projectPoint(d.p1);
-        const b = projectPoint(d.p2);
-        if (!a || !b) continue;
-        out.push({ id: d.id, kind: "trendline", x1: a.x, y1: a.y, x2: b.x, y2: b.y });
-      } else if (d.type === "hline") {
-        const y = candle.priceToCoordinate(d.price);
-        if (y === null) continue;
-        out.push({ id: d.id, kind: "hline", y });
-      } else if (d.type === "rect") {
-        const a = projectPoint(d.p1);
-        const b = projectPoint(d.p2);
-        if (!a || !b) continue;
-        out.push({ id: d.id, kind: "rect", x1: a.x, y1: a.y, x2: b.x, y2: b.y });
-      }
-    }
-
-    if (draft) {
-      const a = projectPoint(draft.p1);
-      const b = projectPoint(draft.p2);
-      if (a && b) {
-        out.push({
-          id: "__draft",
-          kind: draft.type,
-          x1: a.x,
-          y1: a.y,
-          x2: b.x,
-          y2: b.y,
-        });
-      }
-    }
-
-    setProjected(out);
-  }, [drawings, draft, projectionTick, bars.length]);
-
-  // Pointer → data conversion. Uses the wrapper's bounding rect because the
-  // SVG covers exactly the same area.
-  const pointerToData = (clientX: number, clientY: number): DrawingPoint | null => {
-    const wrap = wrapperRef.current;
-    const chart = chartRef.current;
-    const candle = candleRef.current;
-    if (!wrap || !chart || !candle) return null;
-    const rect = wrap.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-    const time = chart.timeScale().coordinateToTime(x);
-    const price = candle.coordinateToPrice(y);
-    if (time === null || price === null) return null;
-    return { time: time as number, price };
-  };
-
-  // ───── pointer handlers on the SVG overlay ─────
-  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (activeTool === "none") return;
-    const pt = pointerToData(e.clientX, e.clientY);
-    if (!pt) return;
-
-    if (activeTool === "hline") {
-      addDrawing({ id: newDrawingId(), type: "hline", price: pt.price });
-      setActiveTool("none");
-      return;
-    }
-
-    if (activeTool === "trendline" || activeTool === "rect") {
-      if (!draft) {
-        setDraft({ type: activeTool, p1: pt, p2: pt });
-      } else {
-        addDrawing(
-          activeTool === "trendline"
-            ? { id: newDrawingId(), type: "trendline", p1: draft.p1, p2: pt }
-            : { id: newDrawingId(), type: "rect", p1: draft.p1, p2: pt }
-        );
-        setDraft(null);
-        setActiveTool("none");
-      }
-    }
-  };
-
-  const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (!draft) return;
-    const pt = pointerToData(e.clientX, e.clientY);
-    if (!pt) return;
-    setDraft({ ...draft, p2: pt });
-  };
-
-  const onKeyEsc = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      setDraft(null);
-      setActiveTool("none");
-    }
-  };
-
-  const drawingActive = activeTool !== "none";
-
-  // Reset draft when switching tools.
-  useEffect(() => {
-    if (activeTool !== "none") return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setDraft(null);
-  }, [activeTool]);
-
-  const tools = useMemo(
-    () =>
-      [
-        { id: "none", label: "select", title: "Crosshair / no draw" },
-        { id: "trendline", label: "line", title: "Trend line — click two points" },
-        { id: "hline", label: "h-line", title: "Horizontal line — click once" },
-        { id: "rect", label: "rect", title: "Rectangle — click two corners" },
-      ] as const,
-    []
-  );
-
   return (
     <div
-      ref={wrapperRef}
+      ref={containerRef}
       className="relative w-full h-full min-h-[420px] rounded-xl overflow-hidden"
-      onKeyDown={onKeyEsc}
-      tabIndex={-1}
     >
-      {/* chart canvas mounts here */}
-      <div ref={chartContainerRef} className="absolute inset-0" />
-
-      {/* drawing toolbar */}
+      {/* indicator toolbar */}
       <div className="absolute top-2 left-2 z-20 flex items-center gap-1 text-[10px] font-mono">
-        {tools.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTool(t.id as DrawingTool)}
-            title={t.title}
-            className={`px-2 py-1 rounded border backdrop-blur-sm transition ${
-              activeTool === t.id
-                ? "border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-dim)]"
-                : "border-[var(--border)] text-[var(--muted)] bg-[var(--bg)]/60 hover:border-[var(--accent)] hover:text-[var(--accent)]"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-        {drawings.length > 0 && (
-          <button
-            onClick={() => {
-              if (confirm(`Clear ${drawings.length} drawing${drawings.length === 1 ? "" : "s"}?`))
-                clearDrawings();
-            }}
-            title="Clear all drawings"
-            className="px-2 py-1 rounded border border-[var(--border)] text-[var(--muted)] bg-[var(--bg)]/60 hover:border-[#ef4444] hover:text-[#ef4444] transition"
-          >
-            clear ({drawings.length})
-          </button>
-        )}
-      </div>
-
-      {/* SVG drawing overlay — pointer-events only when a tool is active */}
-      <svg
-        className="absolute inset-0 z-10"
-        style={{
-          pointerEvents: drawingActive ? "auto" : "none",
-          cursor: drawingActive ? "crosshair" : "default",
-        }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-      >
-        {projected.map((p) => {
-          const isDraft = p.id === "__draft";
-          const stroke = isDraft ? DRAW_COLOR : DRAW_COLOR;
-          const opacity = isDraft ? 0.6 : 1;
-          if (p.kind === "trendline") {
-            return (
-              <line
-                key={p.id}
-                x1={p.x1}
-                y1={p.y1}
-                x2={p.x2}
-                y2={p.y2}
-                stroke={stroke}
-                strokeWidth={1.5}
-                opacity={opacity}
-                strokeDasharray={isDraft ? "4 3" : undefined}
-              />
-            );
-          }
-          if (p.kind === "hline") {
-            return (
-              <line
-                key={p.id}
-                x1={0}
-                y1={p.y}
-                x2="100%"
-                y2={p.y}
-                stroke={stroke}
-                strokeWidth={1}
-                opacity={opacity}
-                strokeDasharray="2 4"
-              />
-            );
-          }
-          // rect
-          const x = Math.min(p.x1, p.x2);
-          const y = Math.min(p.y1, p.y2);
-          const w = Math.abs(p.x2 - p.x1);
-          const h = Math.abs(p.y2 - p.y1);
+        {ALL_INDICATORS.map((id) => {
+          const meta = INDICATOR_META[id];
+          const on = indicators[id];
           return (
-            <rect
-              key={p.id}
-              x={x}
-              y={y}
-              width={w}
-              height={h}
-              fill={DRAW_COLOR}
-              fillOpacity={isDraft ? 0.08 : 0.12}
-              stroke={stroke}
-              strokeWidth={1}
-              opacity={opacity}
-              strokeDasharray={isDraft ? "4 3" : undefined}
-            />
+            <button
+              key={id}
+              onClick={() => toggleIndicator(id)}
+              title={`Toggle ${meta.label}`}
+              className={`px-2 py-1 rounded border backdrop-blur-sm transition flex items-center gap-1.5 ${
+                on
+                  ? "border-[var(--border)] text-[var(--fg)] bg-[var(--bg)]/70"
+                  : "border-[var(--border)] text-[var(--muted)] bg-[var(--bg)]/40 opacity-60 hover:opacity-100"
+              }`}
+            >
+              <span
+                className="inline-block w-2.5 h-[2px] rounded-full"
+                style={{ backgroundColor: meta.color }}
+              />
+              {meta.label}
+            </button>
           );
         })}
-      </svg>
+      </div>
 
       {/* loading overlay */}
       {loading && (

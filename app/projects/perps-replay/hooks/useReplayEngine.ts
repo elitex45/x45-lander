@@ -18,7 +18,8 @@ import {
 import { Kline, defaultMonthRange, loadKlinesRange } from "../lib/kline";
 import { Interval } from "../lib/symbols";
 import { load, save } from "../lib/storage";
-import type { Drawing, DrawingTool } from "../lib/drawings";
+import type { IndicatorId, IndicatorVisibility } from "../lib/indicators";
+import { DEFAULT_INDICATOR_VISIBILITY } from "../lib/indicators";
 
 type Action =
   | { type: "loadBars"; bars: Kline[] }
@@ -93,8 +94,9 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
 
   // ───── bar loader: re-fetch when symbol/interval/range changes ─────
   const [loading, setLoading] = useState(false);
-  const [drawings, setDrawings] = useState<Drawing[]>([]);
-  const [activeTool, setActiveTool] = useState<DrawingTool>("none");
+  const [indicators, setIndicators] = useState<IndicatorVisibility>(
+    DEFAULT_INDICATOR_VISIBILITY
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -110,9 +112,9 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
         if (cancelled) return;
         dispatch({ type: "loadBars", bars });
 
-        // Try to hydrate persisted account/cursor/drawings for this symbol+
-        // interval, but ONLY if the persisted range matches — otherwise the
-        // cursor index is meaningless against the new bar set.
+        // Try to hydrate persisted account/cursor/indicators for this
+        // symbol+interval, but ONLY if the persisted range matches —
+        // otherwise the cursor index is meaningless against the new bar set.
         const persisted = load(state.symbol, state.interval);
         if (
           persisted &&
@@ -125,11 +127,10 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
             cursor: persisted.cursor,
             account: persisted.account,
           });
-          setDrawings(persisted.drawings);
-        } else {
-          // Different range or no save → start fresh drawings for this pair.
-          setDrawings(persisted?.drawings ?? []);
         }
+        // Indicator visibility hydrates regardless of range match — it's a
+        // user preference, not session state.
+        if (persisted?.indicators) setIndicators(persisted.indicators);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -152,7 +153,7 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
         cursor: state.cursor,
         fromMonth: rangeRef.current.from,
         toMonth: rangeRef.current.to,
-        drawings,
+        indicators,
       });
     }, 250);
     return () => {
@@ -164,7 +165,7 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
     state.symbol,
     state.interval,
     state.bars.length,
-    drawings,
+    indicators,
   ]);
 
   // ───── action helpers ─────
@@ -202,11 +203,10 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
     []
   );
 
-  // ───── drawing helpers ─────
-  const addDrawing = useCallback((d: Drawing) => {
-    setDrawings((prev) => [...prev, d]);
+  // ───── indicator helpers ─────
+  const toggleIndicator = useCallback((id: IndicatorId) => {
+    setIndicators((prev) => ({ ...prev, [id]: !prev[id] }));
   }, []);
-  const clearDrawings = useCallback(() => setDrawings([]), []);
 
   return {
     state,
@@ -223,10 +223,7 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
     close,
     resetAccount: resetAcct,
     switchPair,
-    drawings,
-    addDrawing,
-    clearDrawings,
-    activeTool,
-    setActiveTool,
+    indicators,
+    toggleIndicator,
   };
 }

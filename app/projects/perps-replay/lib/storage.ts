@@ -1,13 +1,14 @@
 // localStorage persistence for the paper-trading account.
 //
-// We persist ONLY the account (positions, orders, history, equity curve) keyed
-// by symbol+interval. We do NOT persist `bars` or `cursor` — those are derived
-// from the chosen date range and the user's replay progress, and the bars
-// themselves are large.
+// We persist ONLY the account (positions, orders, history, equity curve) +
+// indicator visibility preferences, keyed by symbol+interval. We do NOT
+// persist `bars` or `cursor` — those are derived from the chosen date range
+// and the user's replay progress, and the bars themselves are large.
 
 import type { Account } from "./engine";
 import { freshAccount } from "./engine";
-import type { Drawing } from "./drawings";
+import type { IndicatorVisibility } from "./indicators";
+import { DEFAULT_INDICATOR_VISIBILITY } from "./indicators";
 
 const NS = "x45.perps-replay.v1";
 
@@ -17,8 +18,9 @@ type Persisted = {
   cursor: number;
   fromMonth: string;
   toMonth: string;
-  // Optional so existing v1 saves (which predate drawings) still load.
-  drawings?: Drawing[];
+  // Optional so older v1 saves still load. Drawings used to live here too —
+  // we silently ignore them now.
+  indicators?: IndicatorVisibility;
 };
 
 function key(symbol: string, interval: string) {
@@ -33,7 +35,7 @@ export function save(
     cursor: number;
     fromMonth: string;
     toMonth: string;
-    drawings: Drawing[];
+    indicators: IndicatorVisibility;
   }
 ) {
   if (typeof window === "undefined") return;
@@ -53,7 +55,7 @@ export function load(
   cursor: number;
   fromMonth: string;
   toMonth: string;
-  drawings: Drawing[];
+  indicators: IndicatorVisibility;
 } | null {
   if (typeof window === "undefined") return null;
   try {
@@ -66,7 +68,7 @@ export function load(
       cursor: parsed.cursor,
       fromMonth: parsed.fromMonth,
       toMonth: parsed.toMonth,
-      drawings: parsed.drawings ?? [],
+      indicators: parsed.indicators ?? DEFAULT_INDICATOR_VISIBILITY,
     };
   } catch {
     return null;

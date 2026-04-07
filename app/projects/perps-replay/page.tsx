@@ -47,11 +47,8 @@ export default function PerpsReplayPage() {
               closedTrades={state.account.closedTrades}
               symbol={state.symbol}
               loading={engine.loading}
-              drawings={engine.drawings}
-              addDrawing={engine.addDrawing}
-              clearDrawings={engine.clearDrawings}
-              activeTool={engine.activeTool}
-              setActiveTool={engine.setActiveTool}
+              indicators={engine.indicators}
+              toggleIndicator={engine.toggleIndicator}
             />
           </div>
           <ReplayControls engine={engine} />

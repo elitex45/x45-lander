@@ -3,6 +3,7 @@
 @variant dark (&:is(.dark *));
 
 :root {
+  color-scheme: light;
   --bg: #FEF7F0;
   --fg: #1A0E08;
   --muted: #8B6E56;
@@ -19,6 +20,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --bg: #050816;
   --fg: #e0e4ec;
   --muted: #6e7681;
