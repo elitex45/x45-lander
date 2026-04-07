@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
 import { useTheme } from "next-themes";
+import Link from "next/link";
 import { StarField } from "./StarField";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 import { PageCat } from "./PageCat";
@@ -161,7 +162,15 @@ export function HomePage({ projects: projectsProp }: { projects?: Project[] }) {
               guru / x45.in
             </span>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/projects"
+              className="text-xs font-mono text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
+            >
+              projects →
+            </Link>
+            <ThemeToggle />
+          </div>
         </motion.nav>
 
         {/* ════════════ Hero ════════════ */}
