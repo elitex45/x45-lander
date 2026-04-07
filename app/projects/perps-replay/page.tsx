@@ -12,7 +12,7 @@ import { TradeHistory } from "./components/TradeHistory";
 import { EquityCurve } from "./components/EquityCurve";
 
 export default function PerpsReplayPage() {
-  const engine = useReplayEngine("BTCUSDT", "1h");
+  const engine = useReplayEngine("BTCUSDT", "4h");
   const { state } = engine;
 
   // Slice bars to current cursor — the chart never sees the future.

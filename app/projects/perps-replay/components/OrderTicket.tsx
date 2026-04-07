@@ -3,7 +3,11 @@
 import { useMemo, useState } from "react";
 import type { ReplayHook } from "../hooks/useReplayEngine";
 import type { OrderType, Side } from "../lib/engine";
-import { calcLiquidationPx, selectAccountStats } from "../lib/engine";
+import {
+  calcLiquidationPx,
+  computeOrderSize,
+  selectAccountStats,
+} from "../lib/engine";
 import { getSymbolMeta } from "../lib/symbols";
 
 export function OrderTicket({ engine }: { engine: ReplayHook }) {
@@ -13,7 +17,10 @@ export function OrderTicket({ engine }: { engine: ReplayHook }) {
 
   const [side, setSide] = useState<Side>("long");
   const [type, setType] = useState<OrderType>("market");
-  const [notional, setNotional] = useState<string>("100");
+  // The user types their MARGIN — the actual USDT they're putting up as
+  // collateral. Exposure = margin × leverage. This matches how every retail
+  // perp UI works ("$100 at 10x" = $100 risked, $1000 of price exposure).
+  const [margin, setMargin] = useState<string>("100");
   const [leverage, setLeverage] = useState<number>(10);
   const [triggerPx, setTriggerPx] = useState<string>("");
   const [tp, setTp] = useState<string>("");
@@ -22,19 +29,23 @@ export function OrderTicket({ engine }: { engine: ReplayHook }) {
   if (!meta) return null;
   const mark = stats.mark;
 
-  const notionalNum = Number(notional);
+  const marginInput = Number(margin);
   const triggerNum = Number(triggerPx);
   const fillPx = type === "market" ? mark : triggerNum;
-  const sizeBase =
-    fillPx > 0 && notionalNum > 0 ? notionalNum / fillPx : 0;
-  const marginNeeded = leverage > 0 ? notionalNum / leverage : Infinity;
-  const enoughMargin = marginNeeded <= stats.freeMargin && notionalNum > 0;
+  // computeOrderSize is exported from engine.ts so the same formula is the
+  // single source of truth (and is unit-tested in isolation).
+  const { exposure, size: sizeBase } = computeOrderSize(
+    marginInput,
+    leverage,
+    fillPx
+  );
+  const enoughMargin = marginInput <= stats.freeMargin && marginInput > 0;
   const validTrigger =
     type === "market" || (triggerNum > 0 && Number.isFinite(triggerNum));
 
   const canSubmit =
     state.bars.length > 0 &&
-    notionalNum > 0 &&
+    marginInput > 0 &&
     sizeBase > 0 &&
     enoughMargin &&
     validTrigger;
@@ -131,12 +142,13 @@ export function OrderTicket({ engine }: { engine: ReplayHook }) {
 
       <label className="block">
         <span className="text-[var(--muted)] uppercase tracking-wider text-[10px]">
-          notional (USDT)
+          margin (USDT)
         </span>
         <input
-          value={notional}
-          onChange={(e) => setNotional(e.target.value)}
+          value={margin}
+          onChange={(e) => setMargin(e.target.value)}
           inputMode="decimal"
+          placeholder="your collateral"
           className="w-full bg-transparent border border-[var(--border)] rounded px-2 py-1.5 text-[var(--fg)] focus:outline-none focus:border-[var(--accent)]"
         />
       </label>
@@ -188,7 +200,8 @@ export function OrderTicket({ engine }: { engine: ReplayHook }) {
           size: <span className="text-[var(--fg)]">{sizeBase.toFixed(meta.qtyPrecision)}</span>
         </div>
         <div>
-          margin: <span className="text-[var(--fg)]">{marginNeeded.toFixed(2)}</span>
+          exposure:{" "}
+          <span className="text-[var(--fg)]">{exposure.toFixed(2)}</span>
         </div>
         <div>
           fill: <span className="text-[var(--fg)]">{fillPx > 0 ? fillPx.toFixed(meta.pricePrecision) : "—"}</span>
@@ -209,7 +222,7 @@ export function OrderTicket({ engine }: { engine: ReplayHook }) {
         place {type} {side}
       </button>
 
-      {!enoughMargin && notionalNum > 0 && (
+      {!enoughMargin && marginInput > 0 && (
         <div className="text-[10px] text-[#ef4444]">insufficient free margin</div>
       )}
     </div>

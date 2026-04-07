@@ -14,6 +14,7 @@ import { CharacterStagger } from "./CharacterStagger";
 import { MagneticText } from "./MagneticText";
 import { ScrambleText } from "./ScrambleText";
 import { SecretGame } from "./SecretGame";
+import { ThankMeButton } from "./ThankMeButton";
 
 const techStack = [
   { name: "Python", color: "#3b82f6" },
@@ -143,13 +144,14 @@ export function HomePage() {
               guru / x45.in
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Link
               href="/projects"
-              className="text-xs font-mono text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
+              className="text-xs font-mono text-[var(--muted)] hover:text-[var(--accent)] transition-colors mr-1"
             >
               projects →
             </Link>
+            <ThankMeButton />
             <ThemeToggle />
           </div>
         </motion.nav>

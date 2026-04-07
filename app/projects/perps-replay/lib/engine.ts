@@ -128,6 +128,27 @@ export function calcLiquidationPx(
   return entryPx * (1 + 1 / leverage - mmr);
 }
 
+// Single source of truth for translating the user's input (margin in USDT)
+// into a position size (base units). Exported so:
+//   1. OrderTicket can compute size + exposure for display & submission
+//   2. tests can verify the relationship is consistent with engine PnL math
+//
+// Definition: the user always types the COLLATERAL they're putting on the
+// line. Exposure (notional) = margin × leverage. Size in base units =
+// exposure / fillPx.
+export function computeOrderSize(
+  marginUsdt: number,
+  leverage: number,
+  fillPx: number
+): { exposure: number; size: number } {
+  if (marginUsdt <= 0 || leverage <= 0 || fillPx <= 0) {
+    return { exposure: 0, size: 0 };
+  }
+  const exposure = marginUsdt * leverage;
+  const size = exposure / fillPx;
+  return { exposure, size };
+}
+
 function totalEquity(account: Account, mark: number, symbol: string): number {
   let unreal = 0;
   for (const p of account.positions) {

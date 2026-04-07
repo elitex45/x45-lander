@@ -100,6 +100,13 @@ export function ReplayChart({
   const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
   const lastBarsLenRef = useRef(0);
   const lastSymbolRef = useRef(symbol);
+  // Track the first bar's openTime so we can detect when the underlying bar
+  // set has *fundamentally* changed (e.g. timeframe switch from 1h → 5m).
+  // Length and symbol alone aren't enough: after a tf change, the empty
+  // render briefly resets length to 0, and the next render with the first
+  // new bar looks identical to a normal +1 incremental advance — except the
+  // timestamps are entirely different, which crashes lightweight-charts.
+  const lastFirstTimeRef = useRef<number | null>(null);
 
   const { resolvedTheme } = useTheme();
 
@@ -211,18 +218,22 @@ export function ReplayChart({
     return () => cancelAnimationFrame(id);
   }, [resolvedTheme]);
 
-  // ───── feed bars: full reset on shrink/symbol change, incremental on growth ─────
+  // ───── feed bars: full reset on any fundamental change, incremental on +1 ─────
   useEffect(() => {
     const candle = candleRef.current;
     const vol = volRef.current;
     if (!candle || !vol) return;
 
+    const firstTimeNow = bars.length > 0 ? bars[0].openTime : null;
     const symbolChanged = lastSymbolRef.current !== symbol;
+    const firstTimeChanged = firstTimeNow !== lastFirstTimeRef.current;
     const shrunkOrJumped =
       bars.length < lastBarsLenRef.current ||
       bars.length > lastBarsLenRef.current + 1;
 
-    if (symbolChanged || shrunkOrJumped) {
+    const shouldReset = symbolChanged || firstTimeChanged || shrunkOrJumped;
+
+    if (shouldReset) {
       const data: CandlestickData<UTCTimestamp>[] = bars.map((b) => ({
         time: Math.floor(b.openTime / 1000) as UTCTimestamp,
         open: b.open,
@@ -238,9 +249,13 @@ export function ReplayChart({
           color: b.close >= b.open ? CANDLE_UP + "55" : CANDLE_DOWN + "55",
         }))
       );
-      if (symbolChanged) {
-        chartRef.current?.timeScale().fitContent();
-      }
+      // Intentionally NOT calling fitContent() here. After any reset
+      // (symbol/timeframe/range change), we start at cursor=0 which means
+      // `bars` has exactly one candle; fitContent() on a single bar
+      // stretches it across the entire chart width. The chart's default
+      // barSpacing (~6px) is the right initial look — bars appear at
+      // normal width on the right edge and the chart auto-scrolls as the
+      // cursor advances.
     } else if (bars.length === lastBarsLenRef.current + 1) {
       const b = bars[bars.length - 1];
       candle.update({
@@ -258,6 +273,7 @@ export function ReplayChart({
     }
     lastBarsLenRef.current = bars.length;
     lastSymbolRef.current = symbol;
+    lastFirstTimeRef.current = firstTimeNow;
   }, [bars, symbol]);
 
   // ───── feed indicator data ─────
