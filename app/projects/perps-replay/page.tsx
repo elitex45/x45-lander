@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 import { useReplayEngine } from "./hooks/useReplayEngine";
 import { ReplayChart } from "./components/ReplayChart";
@@ -27,13 +28,23 @@ export default function PerpsReplayPage() {
         <p className="text-[10px] font-mono text-[var(--accent)] tracking-widest uppercase mb-2">
           &gt; ./projects/perps-replay
         </p>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--fg)]">
-          Perps Replay
-        </h1>
-        <p className="text-xs text-[var(--muted)] mt-1 max-w-2xl leading-relaxed">
-          Pick a pair, scrub through history, place real orders against past
-          price action. Everything stays in your browser.
-        </p>
+        <div className="flex items-end justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--fg)]">
+              Perps Replay
+            </h1>
+            <p className="text-xs text-[var(--muted)] mt-1 max-w-2xl leading-relaxed">
+              Pick a pair, scrub through history, place real orders against past
+              price action. Everything stays in your browser.
+            </p>
+          </div>
+          <Link
+            href="/projects/perps-replay/trainer"
+            className="text-[10px] font-mono uppercase tracking-widest px-3 py-2 rounded-md border border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent-dim)] transition-colors"
+          >
+            regime trainer →
+          </Link>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">

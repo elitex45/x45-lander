@@ -693,13 +693,17 @@ body {
 }
 
 /* ──────────── Readme Viewer: print stylesheet ────────────
- * Triggered by window.print(). Hides everything except the rendered
- * markdown so the PDF looks like a clean document, not a screenshot
- * of the editor.
+ * Triggered by window.print(). Strips the site chrome to white so the
+ * PDF looks like a clean document instead of a screenshot of the editor.
+ *
+ * The key trick: we use `body *` to nuke every descendant background to
+ * transparent, force body to white, then re-add the specific backgrounds
+ * we want (inline code, code blocks, blockquotes, table headers). This is
+ * the bulletproof way to defeat any wrapper element that's still tinted
+ * via CSS vars or Tailwind arbitrary values.
  */
 @media print {
-  /* Force light-on-white regardless of theme so the PDF is readable
-     when printed on paper and small in size. */
+  /* Override theme vars so anything that does survive is light-on-white */
   :root, .dark {
     --bg: #ffffff;
     --fg: #1a1a1a;
@@ -711,8 +715,19 @@ body {
     --cyan: #0891b2;
   }
 
+  /* Nuclear background reset — every descendant of body loses its bg.
+     The specific re-adds for prose elements below win on specificity. */
+  body * {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
   html, body {
     background: #ffffff !important;
+    background-color: #ffffff !important;
     color: #1a1a1a !important;
     overflow: visible !important;
   }
@@ -725,10 +740,7 @@ body {
 
   /* Glass card melts away in print so the prose lays directly on paper */
   .glass-card {
-    background: transparent !important;
     border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
     border-radius: 0 !important;
   }
   .glass-card::before { display: none !important; }
@@ -753,23 +765,36 @@ body {
   .readme-prose h2 { font-size: 17pt; border-bottom-color: #d0d0d0 !important; }
   .readme-prose h3 { font-size: 14pt; }
   .readme-prose a { color: #0066cc !important; }
+
+  /* Re-add the specific backgrounds we want inside the prose. These
+     beat the `body *` reset on specificity (class+element vs
+     element+universal), and we force print-color-adjust: exact so the
+     browser actually prints these grays instead of stripping them to
+     save ink. */
   .readme-prose code {
     background: #f4f4f4 !important;
     color: #c7254e !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
   .readme-prose pre {
     background: #f8f8f8 !important;
-    border-color: #e0e0e0 !important;
+    border: 1px solid #e0e0e0 !important;
     page-break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
   .readme-prose pre code {
+    background: transparent !important;
     color: #1a1a1a !important;
   }
   .readme-prose blockquote {
     background: #f8f8f8 !important;
-    border-left-color: #888 !important;
+    border-left: 3px solid #888 !important;
     color: #444 !important;
     page-break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
   .readme-prose table {
     page-break-inside: avoid;
@@ -777,9 +802,11 @@ body {
   .readme-prose th {
     background: #f0f0f0 !important;
     color: #1a1a1a !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
   .readme-prose th, .readme-prose td {
-    border-color: #d0d0d0 !important;
+    border: 1px solid #d0d0d0 !important;
   }
   .readme-prose img {
     page-break-inside: avoid;
@@ -790,6 +817,83 @@ body {
   @page {
     size: A4;
     margin: 18mm 18mm 18mm 18mm;
+  }
+}
+
+/* ──────────── Regime Trainer: history print stylesheet ────────────
+ *
+ * When the user clicks "export pdf" on the training history, this
+ * stylesheet hides everything on the page except the history list and
+ * lays it out as a printable document. Since the mini charts are inline
+ * SVG (not canvas), they print to PDF cleanly without any screenshot
+ * dance.
+ *
+ * Triggered by `body.printing-history` which is set on print and
+ * unset by `afterprint`. We use a class instead of @media print so the
+ * other print stylesheets (readme viewer) don't fight us.
+ */
+
+@media print {
+  body:has(#trainer-history-root) header,
+  body:has(#trainer-history-root) > div > div > div > .glass-card.p-4,
+  body:has(#trainer-history-root) > div > div > div > .glass-card.p-2 {
+    /* These are the trainer's stats strip and active chart panel. We
+       don't want them in the history PDF. */
+  }
+
+  /* The trainer page wraps everything in max-w-6xl mx-auto. We hide
+     all of its direct children EXCEPT the history root, then promote
+     the history root to fill the page. */
+  body:has(#trainer-history-root) .max-w-6xl > *:not(#trainer-history-root):not(:last-child) {
+    display: none !important;
+  }
+
+  /* Make the history container a clean white page */
+  #trainer-history-root {
+    background: #ffffff !important;
+    color: #1a1a1a !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Each card prints as a clean bordered block */
+  #trainer-history-root .glass-card {
+    background: #ffffff !important;
+    border: 1px solid #d0d0d0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    border-radius: 6px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 12px !important;
+  }
+  #trainer-history-root .glass-card::before {
+    display: none !important;
+  }
+
+  /* Force colors to print (otherwise the SVG candles + verdict colors
+     get stripped to save ink) */
+  #trainer-history-root,
+  #trainer-history-root * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  /* Strip the regular site chrome */
+  body:has(#trainer-history-root) .orb,
+  body:has(#trainer-history-root) .noise-overlay,
+  body:has(#trainer-history-root) .sunset-sky,
+  body:has(#trainer-history-root) .scan-line,
+  body:has(#trainer-history-root) .grid-bg,
+  body:has(#trainer-history-root) .cursor-glow,
+  body:has(#trainer-history-root) nav {
+    display: none !important;
+  }
+  body:has(#trainer-history-root) html,
+  body:has(#trainer-history-root) body {
+    background: #ffffff !important;
+    color: #1a1a1a !important;
   }
 }
 

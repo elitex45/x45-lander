@@ -40,6 +40,17 @@ const projects: ProjectEntry[] = [
     label: "writing",
     accent: "var(--accent)",
   },
+  {
+    slug: "pomodoro",
+    emoji: "🍅",
+    title: "Pomodoro",
+    blurb:
+      "25 minutes of focus, 5 minute break, repeat. Big circular timer that changes color per mode, a chime when time's up, and a todo list that tracks how many pomodoros each task ate. Stays accurate even with the tab in the background.",
+    status: "live",
+    href: "/projects/pomodoro",
+    label: "productivity",
+    accent: "var(--accent)",
+  },
 ];
 
 const statusStyle: Record<ProjectEntry["status"], string> = {

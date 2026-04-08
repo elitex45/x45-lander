@@ -19,8 +19,15 @@ This is a **markdown viewer + PDF exporter** built into x45.in. Type on the left
 | GFM tables | ✓ |
 | Task lists | ✓ |
 | Code highlighting | ✓ |
+| Images (URL or data URI) | ✓ |
 | Math (KaTeX) | — |
 | Mermaid diagrams | — |
+
+## An image
+
+Drop in any \`![alt](url)\` and it renders inline — and lands in the exported PDF too.
+
+![A random landscape from Picsum](https://picsum.photos/seed/x45/800/360)
 
 ## A code block
 
