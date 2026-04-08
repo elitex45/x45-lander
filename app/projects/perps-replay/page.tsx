@@ -49,6 +49,8 @@ export default function PerpsReplayPage() {
               loading={engine.loading}
               indicators={engine.indicators}
               toggleIndicator={engine.toggleIndicator}
+              patternsEnabled={engine.patternsEnabled}
+              togglePatterns={engine.togglePatterns}
             />
           </div>
           <ReplayControls engine={engine} />

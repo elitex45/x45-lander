@@ -97,6 +97,7 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
   const [indicators, setIndicators] = useState<IndicatorVisibility>(
     DEFAULT_INDICATOR_VISIBILITY
   );
+  const [patternsEnabled, setPatternsEnabled] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -128,9 +129,10 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
             account: persisted.account,
           });
         }
-        // Indicator visibility hydrates regardless of range match — it's a
-        // user preference, not session state.
+        // Indicator visibility + patterns toggle hydrate regardless of
+        // range match — they're user preferences, not session state.
         if (persisted?.indicators) setIndicators(persisted.indicators);
+        if (persisted) setPatternsEnabled(persisted.patternsEnabled);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -154,6 +156,7 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
         fromMonth: rangeRef.current.from,
         toMonth: rangeRef.current.to,
         indicators,
+        patternsEnabled,
       });
     }, 250);
     return () => {
@@ -166,6 +169,7 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
     state.interval,
     state.bars.length,
     indicators,
+    patternsEnabled,
   ]);
 
   // ───── action helpers ─────
@@ -203,9 +207,12 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
     []
   );
 
-  // ───── indicator helpers ─────
+  // ───── indicator + pattern helpers ─────
   const toggleIndicator = useCallback((id: IndicatorId) => {
     setIndicators((prev) => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+  const togglePatterns = useCallback(() => {
+    setPatternsEnabled((p) => !p);
   }, []);
 
   return {
@@ -225,5 +232,7 @@ export function useReplayEngine(initialSymbol: string, initialInterval: Interval
     switchPair,
     indicators,
     toggleIndicator,
+    patternsEnabled,
+    togglePatterns,
   };
 }

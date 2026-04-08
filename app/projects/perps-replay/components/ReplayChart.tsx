@@ -28,6 +28,10 @@ import {
   computeEMA,
   computeVWAP,
 } from "../lib/indicators";
+import {
+  PATTERN_META,
+  detectPatterns,
+} from "../lib/patterns";
 
 type Props = {
   bars: Kline[]; // already sliced to [0..cursor]
@@ -38,6 +42,8 @@ type Props = {
   loading: boolean;
   indicators: IndicatorVisibility;
   toggleIndicator: (id: IndicatorId) => void;
+  patternsEnabled: boolean;
+  togglePatterns: () => void;
 };
 
 function readVar(name: string): string {
@@ -86,6 +92,8 @@ export function ReplayChart({
   loading,
   indicators,
   toggleIndicator,
+  patternsEnabled,
+  togglePatterns,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -386,12 +394,14 @@ export function ReplayChart({
     }
   }, [positions, openOrders, symbol]);
 
-  // ───── trade markers ─────
+  // ───── trade markers + pattern markers (single setMarkers call) ─────
   useEffect(() => {
     const plugin = markersPluginRef.current;
     if (!plugin) return;
     const palette = readPalette();
     const markers: SeriesMarker<Time>[] = [];
+
+    // Trade markers — entry arrow + exit PnL bubble
     for (const t of closedTrades) {
       if (t.symbol !== symbol) continue;
       markers.push({
@@ -409,17 +419,41 @@ export function ReplayChart({
         text: `${t.pnl >= 0 ? "+" : ""}${t.pnl.toFixed(2)}`,
       });
     }
+
+    // Pattern markers — detected against the visible bar range only,
+    // so no future leakage during replay.
+    if (patternsEnabled) {
+      const matches = detectPatterns(bars);
+      for (const m of matches) {
+        const candle = bars[m.index];
+        if (!candle) continue;
+        const meta = PATTERN_META[m.kind];
+        markers.push({
+          time: Math.floor(candle.openTime / 1000) as UTCTimestamp,
+          position: m.direction === "bearish" ? "aboveBar" : "belowBar",
+          color: meta.color,
+          shape:
+            m.direction === "bullish"
+              ? "arrowUp"
+              : m.direction === "bearish"
+                ? "arrowDown"
+                : "square",
+          text: meta.short,
+        });
+      }
+    }
+
     markers.sort((a, b) => (a.time as number) - (b.time as number));
     plugin.setMarkers(markers);
-  }, [closedTrades, symbol]);
+  }, [closedTrades, symbol, patternsEnabled, bars]);
 
   return (
     <div
       ref={containerRef}
       className="relative w-full h-full min-h-[420px] rounded-xl overflow-hidden"
     >
-      {/* indicator toolbar */}
-      <div className="absolute top-2 left-2 z-20 flex items-center gap-1 text-[10px] font-mono">
+      {/* indicator + pattern toolbar */}
+      <div className="absolute top-2 left-2 z-20 flex flex-wrap items-center gap-1 text-[10px] font-mono">
         {ALL_INDICATORS.map((id) => {
           const meta = INDICATOR_META[id];
           const on = indicators[id];
@@ -442,6 +476,18 @@ export function ReplayChart({
             </button>
           );
         })}
+        <button
+          onClick={togglePatterns}
+          title="Toggle candlestick pattern detection (engulfing, pin bars, inside bars, doji)"
+          className={`px-2 py-1 rounded border backdrop-blur-sm transition flex items-center gap-1.5 ${
+            patternsEnabled
+              ? "border-[var(--accent)] text-[var(--accent)] bg-[var(--bg)]/70"
+              : "border-[var(--border)] text-[var(--muted)] bg-[var(--bg)]/40 opacity-60 hover:opacity-100"
+          }`}
+        >
+          <span aria-hidden="true">◇</span>
+          patterns
+        </button>
       </div>
 
       {/* loading overlay */}

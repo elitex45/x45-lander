@@ -21,6 +21,7 @@ type Persisted = {
   // Optional so older v1 saves still load. Drawings used to live here too —
   // we silently ignore them now.
   indicators?: IndicatorVisibility;
+  patternsEnabled?: boolean;
 };
 
 function key(symbol: string, interval: string) {
@@ -36,6 +37,7 @@ export function save(
     fromMonth: string;
     toMonth: string;
     indicators: IndicatorVisibility;
+    patternsEnabled: boolean;
   }
 ) {
   if (typeof window === "undefined") return;
@@ -56,6 +58,7 @@ export function load(
   fromMonth: string;
   toMonth: string;
   indicators: IndicatorVisibility;
+  patternsEnabled: boolean;
 } | null {
   if (typeof window === "undefined") return null;
   try {
@@ -69,6 +72,7 @@ export function load(
       fromMonth: parsed.fromMonth,
       toMonth: parsed.toMonth,
       indicators: parsed.indicators ?? DEFAULT_INDICATOR_VISIBILITY,
+      patternsEnabled: parsed.patternsEnabled ?? false,
     };
   } catch {
     return null;
