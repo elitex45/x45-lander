@@ -29,6 +29,17 @@ const projects: ProjectEntry[] = [
     label: "trading",
     accent: "var(--accent)",
   },
+  {
+    slug: "readme-viewer",
+    emoji: "📝",
+    title: "Readme Viewer",
+    blurb:
+      "Type markdown on the left, see it rendered on the right, export to a clean PDF when you're done. GFM tables, task lists, syntax-highlighted code. Drafts persist locally. No signup.",
+    status: "live",
+    href: "/projects/readme-viewer",
+    label: "writing",
+    accent: "var(--accent)",
+  },
 ];
 
 const statusStyle: Record<ProjectEntry["status"], string> = {

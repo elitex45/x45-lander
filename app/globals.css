@@ -483,3 +483,313 @@ body {
   mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, black 10%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, black 10%, transparent 100%);
 }
+
+/* ──────────── Readme Viewer: prose styles ────────────
+ * Scoped under .readme-prose so they only apply to rendered markdown,
+ * never to the rest of the site. Theme-aware via CSS vars.
+ */
+.readme-prose {
+  color: var(--fg);
+  font-size: 15px;
+  line-height: 1.7;
+  word-wrap: break-word;
+}
+
+.readme-prose h1,
+.readme-prose h2,
+.readme-prose h3,
+.readme-prose h4,
+.readme-prose h5,
+.readme-prose h6 {
+  color: var(--fg);
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 1.8em;
+  margin-bottom: 0.6em;
+}
+.readme-prose h1:first-child,
+.readme-prose h2:first-child,
+.readme-prose h3:first-child {
+  margin-top: 0;
+}
+.readme-prose h1 {
+  font-size: 2em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3em;
+}
+.readme-prose h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3em;
+}
+.readme-prose h3 { font-size: 1.25em; }
+.readme-prose h4 { font-size: 1em; }
+.readme-prose h5 { font-size: 0.9em; color: var(--muted); }
+.readme-prose h6 { font-size: 0.85em; color: var(--muted); }
+
+.readme-prose p {
+  margin: 1em 0;
+}
+
+.readme-prose a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.readme-prose a:hover {
+  text-decoration: none;
+}
+
+.readme-prose strong {
+  color: var(--fg);
+  font-weight: 700;
+}
+
+.readme-prose em {
+  font-style: italic;
+}
+
+.readme-prose del {
+  color: var(--muted);
+}
+
+.readme-prose ul,
+.readme-prose ol {
+  margin: 1em 0;
+  padding-left: 1.6em;
+}
+.readme-prose ul { list-style: disc; }
+.readme-prose ol { list-style: decimal; }
+.readme-prose li {
+  margin: 0.3em 0;
+}
+.readme-prose li > p {
+  margin: 0.3em 0;
+}
+.readme-prose li > ul,
+.readme-prose li > ol {
+  margin: 0.3em 0;
+}
+
+/* GFM task lists */
+.readme-prose input[type="checkbox"] {
+  margin-right: 0.5em;
+  vertical-align: middle;
+  accent-color: var(--accent);
+}
+.readme-prose li:has(> input[type="checkbox"]) {
+  list-style: none;
+  margin-left: -1.4em;
+}
+
+.readme-prose blockquote {
+  margin: 1.2em 0;
+  padding: 0.4em 1.2em;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-dim);
+  border-radius: 0 6px 6px 0;
+  color: var(--muted);
+  font-style: italic;
+}
+.readme-prose blockquote p {
+  margin: 0.4em 0;
+}
+
+.readme-prose hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 2.5em 0;
+}
+
+.readme-prose code {
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+.readme-prose pre {
+  margin: 1.2em 0;
+  padding: 1em 1.2em;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+  background: rgba(0, 0, 0, 0.04);
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+.dark .readme-prose pre {
+  background: rgba(255, 255, 255, 0.03);
+}
+.readme-prose pre code {
+  background: transparent;
+  color: var(--fg);
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* Tables */
+.readme-prose table {
+  width: 100%;
+  margin: 1.2em 0;
+  border-collapse: collapse;
+  font-size: 0.92em;
+}
+.readme-prose th,
+.readme-prose td {
+  padding: 0.6em 0.9em;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.readme-prose th {
+  background: var(--accent-dim);
+  font-weight: 600;
+  color: var(--fg);
+}
+.readme-prose tr:nth-child(even) td {
+  background: rgba(127, 127, 127, 0.04);
+}
+
+/* Images */
+.readme-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 1em 0;
+}
+
+/* highlight.js minimal theme — uses CSS vars so it adapts to dark/light */
+.readme-prose .hljs { color: var(--fg); background: transparent; }
+.readme-prose .hljs-comment, .readme-prose .hljs-quote { color: var(--muted); font-style: italic; }
+.readme-prose .hljs-keyword, .readme-prose .hljs-selector-tag, .readme-prose .hljs-literal { color: var(--accent); font-weight: 600; }
+.readme-prose .hljs-string, .readme-prose .hljs-attr { color: #5fb96b; }
+.dark .readme-prose .hljs-string, .dark .readme-prose .hljs-attr { color: #7ee787; }
+.readme-prose .hljs-number, .readme-prose .hljs-built_in { color: var(--purple); }
+.readme-prose .hljs-title, .readme-prose .hljs-name, .readme-prose .hljs-function { color: var(--cyan); }
+.readme-prose .hljs-variable, .readme-prose .hljs-template-variable { color: var(--fg); }
+.readme-prose .hljs-tag, .readme-prose .hljs-params { color: var(--muted); }
+.readme-prose .hljs-meta { color: var(--muted); }
+
+/* Print-only footer block — only ever shown in PDF export */
+.readme-print-footer {
+  margin-top: 3em;
+  padding-top: 1em;
+  text-align: center;
+  font-size: 10px;
+  color: #888;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+.readme-print-footer-line {
+  height: 1px;
+  background: #ccc;
+  margin-bottom: 0.8em;
+}
+.readme-print-footer p {
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+/* ──────────── Readme Viewer: print stylesheet ────────────
+ * Triggered by window.print(). Hides everything except the rendered
+ * markdown so the PDF looks like a clean document, not a screenshot
+ * of the editor.
+ */
+@media print {
+  /* Force light-on-white regardless of theme so the PDF is readable
+     when printed on paper and small in size. */
+  :root, .dark {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #666666;
+    --border: #e0e0e0;
+    --accent: #0066cc;
+    --accent-dim: #f0f6ff;
+    --purple: #7c3aed;
+    --cyan: #0891b2;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #1a1a1a !important;
+    overflow: visible !important;
+  }
+
+  /* Kill every visual gimmick from the chrome */
+  .orb, .noise-overlay, .sunset-sky, .scan-line, .grid-bg, .cursor-glow {
+    display: none !important;
+  }
+  nav { display: none !important; }
+
+  /* Glass card melts away in print so the prose lays directly on paper */
+  .glass-card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    border-radius: 0 !important;
+  }
+  .glass-card::before { display: none !important; }
+
+  /* The preview pane should expand to full page width */
+  #readme-print-area {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .readme-prose {
+    color: #1a1a1a !important;
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+  .readme-prose h1, .readme-prose h2, .readme-prose h3,
+  .readme-prose h4, .readme-prose h5, .readme-prose h6 {
+    color: #1a1a1a !important;
+    page-break-after: avoid;
+  }
+  .readme-prose h1 { font-size: 22pt; border-bottom-color: #d0d0d0 !important; }
+  .readme-prose h2 { font-size: 17pt; border-bottom-color: #d0d0d0 !important; }
+  .readme-prose h3 { font-size: 14pt; }
+  .readme-prose a { color: #0066cc !important; }
+  .readme-prose code {
+    background: #f4f4f4 !important;
+    color: #c7254e !important;
+  }
+  .readme-prose pre {
+    background: #f8f8f8 !important;
+    border-color: #e0e0e0 !important;
+    page-break-inside: avoid;
+  }
+  .readme-prose pre code {
+    color: #1a1a1a !important;
+  }
+  .readme-prose blockquote {
+    background: #f8f8f8 !important;
+    border-left-color: #888 !important;
+    color: #444 !important;
+    page-break-inside: avoid;
+  }
+  .readme-prose table {
+    page-break-inside: avoid;
+  }
+  .readme-prose th {
+    background: #f0f0f0 !important;
+    color: #1a1a1a !important;
+  }
+  .readme-prose th, .readme-prose td {
+    border-color: #d0d0d0 !important;
+  }
+  .readme-prose img {
+    page-break-inside: avoid;
+  }
+
+  /* Page setup — generous margins, no browser-injected header/footer
+     so the only "exported from" stamp is the one we render ourselves. */
+  @page {
+    size: A4;
+    margin: 18mm 18mm 18mm 18mm;
+  }
+}
+
