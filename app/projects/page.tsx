@@ -51,6 +51,17 @@ const projects: ProjectEntry[] = [
     label: "productivity",
     accent: "var(--accent)",
   },
+  {
+    slug: "latency-checker",
+    emoji: "📡",
+    title: "Latency Checker",
+    blurb:
+      "Pings any URL from your browser, drops the cold-start sample, and tells you whether you're colocated, near, or too far for HF / momentum trading. No backend, no proxy — what you measure is what your bot would get from this device.",
+    status: "live",
+    href: "/projects/latency-checker",
+    label: "networking",
+    accent: "var(--accent)",
+  },
 ];
 
 const statusStyle: Record<ProjectEntry["status"], string> = {

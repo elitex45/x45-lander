@@ -181,18 +181,14 @@ function HistoryCard({ entry }: { entry: HistoryEntry }) {
       <div className="text-[11px] text-[var(--fg)] mb-2 border-l-2 border-[var(--accent)] pl-2 py-0.5 print:text-black print:border-l-2 print:border-gray-400">
         {c.reason}
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-[10px] font-mono">
-        <Stat label="ER" value={c.er.toFixed(2)} />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] font-mono">
+        <Stat label="CHOP" value={c.chop.toFixed(1)} />
         <Stat label="ADX" value={c.adx.toFixed(1)} />
         <Stat
           label="EMA20/50"
           value={
             c.ema50 > 0 ? `${(c.ema20 / c.ema50).toFixed(3)}×` : "—"
           }
-        />
-        <Stat
-          label="15bars/ATR"
-          value={`${c.recentMoveATR >= 0 ? "+" : ""}${c.recentMoveATR.toFixed(1)}×`}
         />
         <Stat label="ATR" value={c.atr.toFixed(2)} />
       </div>

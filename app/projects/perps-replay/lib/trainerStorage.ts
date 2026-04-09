@@ -12,6 +12,12 @@ import type { Interval } from "./symbols";
 
 const KEY = "x45.regime-trainer.v1";
 
+// Schema version. Bumped from 1 → 2 when the classifier was rewritten
+// from the ER-based decision tree to the CHOP-based one. v1 history
+// entries have a different Classification shape and are dropped on
+// migration; accuracy stats are preserved.
+const SCHEMA_VERSION = 2 as const;
+
 export type PerRegime = { seen: number; correct: number };
 
 // One completed round, persisted so the user can scroll back through
@@ -30,7 +36,7 @@ export type HistoryEntry = {
 };
 
 export type TrainerStats = {
-  v: 1;
+  v: 2;
   totalRounds: number;
   correctRounds: number;
   byRegime: Record<Regime, PerRegime>;
@@ -51,7 +57,7 @@ function emptyByRegime(): Record<Regime, PerRegime> {
 
 export function emptyStats(): TrainerStats {
   return {
-    v: 1,
+    v: SCHEMA_VERSION,
     totalRounds: 0,
     correctRounds: 0,
     byRegime: emptyByRegime(),
@@ -60,21 +66,53 @@ export function emptyStats(): TrainerStats {
   };
 }
 
+// Loose shape for the v1 stats blob — historic. We migrate forward
+// from this and drop the (incompatible) history entries.
+type LegacyV1Stats = {
+  v: 1;
+  totalRounds?: number;
+  correctRounds?: number;
+  byRegime?: Record<Regime, PerRegime>;
+  recentResults?: boolean[];
+};
+
 export function load(): TrainerStats {
   if (typeof window === "undefined") return emptyStats();
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return emptyStats();
-    const parsed = JSON.parse(raw) as TrainerStats;
-    if (parsed.v !== 1) return emptyStats();
-    // Defensive: ensure every regime key exists in case the taxonomy
-    // grew since this user's stats were saved.
+    const parsed = JSON.parse(raw) as TrainerStats | LegacyV1Stats;
+
+    // v1 → v2 migration: the classifier metric shape changed from
+    // ER-based to CHOP-based, so old HistoryEntry objects can't be
+    // displayed against the new Classification type. Preserve the
+    // accuracy stats (still meaningful as a learning curve measure)
+    // but discard the history.
+    if (parsed.v === 1) {
+      const byRegime = emptyByRegime();
+      const v1 = parsed as LegacyV1Stats;
+      for (const r of REGIMES) {
+        byRegime[r] = v1.byRegime?.[r] ?? { seen: 0, correct: 0 };
+      }
+      return {
+        v: SCHEMA_VERSION,
+        totalRounds: v1.totalRounds ?? 0,
+        correctRounds: v1.correctRounds ?? 0,
+        byRegime,
+        recentResults: v1.recentResults ?? [],
+        history: [],
+      };
+    }
+
+    if (parsed.v !== SCHEMA_VERSION) return emptyStats();
+
+    // Defensive: ensure every regime key exists.
     const byRegime = emptyByRegime();
     for (const r of REGIMES) {
       byRegime[r] = parsed.byRegime?.[r] ?? { seen: 0, correct: 0 };
     }
     return {
-      v: 1,
+      v: SCHEMA_VERSION,
       totalRounds: parsed.totalRounds ?? 0,
       correctRounds: parsed.correctRounds ?? 0,
       byRegime,
@@ -129,7 +167,7 @@ export function recordRound(
   };
 
   const next: TrainerStats = {
-    v: 1,
+    v: SCHEMA_VERSION,
     totalRounds: prev.totalRounds + 1,
     correctRounds: prev.correctRounds + (correct ? 1 : 0),
     byRegime: { ...prev.byRegime },

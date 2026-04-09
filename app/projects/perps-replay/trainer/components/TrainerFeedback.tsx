@@ -65,19 +65,29 @@ export function TrainerFeedback({
       </div>
 
       {/* Underlying numbers — the math the classifier was reading */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-[10px] font-mono">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[10px] font-mono">
         <Stat
-          label="efficiency"
-          value={classification.er.toFixed(2)}
+          label="CHOP(14)"
+          value={classification.chop.toFixed(1)}
           hint={
-            classification.er >= 0.45
-              ? "trending"
-              : classification.er < 0.2
-                ? "ranging"
-                : "mixed"
+            classification.chop > 61.8
+              ? "ranging"
+              : classification.chop < 38.2
+                ? "trending"
+                : "grey zone"
           }
         />
-        <Stat label="ADX(14)" value={classification.adx.toFixed(1)} />
+        <Stat
+          label="ADX(14)"
+          value={classification.adx.toFixed(1)}
+          hint={
+            classification.adx >= 25
+              ? "strong"
+              : classification.adx < 20
+                ? "weak"
+                : "developing"
+          }
+        />
         <Stat
           label="20 EMA / 50 EMA"
           value={
@@ -85,11 +95,7 @@ export function TrainerFeedback({
               ? `${(classification.ema20 / classification.ema50).toFixed(3)}×`
               : "—"
           }
-          hint={classification.ema20 > classification.ema50 ? "above" : "below"}
-        />
-        <Stat
-          label="last 15 bars / ATR"
-          value={`${classification.recentMoveATR >= 0 ? "+" : ""}${classification.recentMoveATR.toFixed(1)}×`}
+          hint={classification.ema20 > classification.ema50 ? "bullish" : "bearish"}
         />
         <Stat label="ATR(14)" value={classification.atr.toFixed(2)} />
       </div>
