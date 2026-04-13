@@ -62,6 +62,17 @@ const projects: ProjectEntry[] = [
     label: "networking",
     accent: "var(--accent)",
   },
+  {
+    slug: "trading-journal",
+    emoji: "📓",
+    title: "Trading Journal",
+    blurb:
+      "Paper trade live Binance perps with real-time WebSocket data — 1m to 4h candles, full order types, leverage, liquidations. Trades auto-log to a journal with analytics: win rate, expectancy, profit factor, equity curve, calendar heatmap, hourly/daily breakdown, per-pair and per-setup stats. No signup.",
+    status: "live",
+    href: "/projects/trading-journal",
+    label: "trading",
+    accent: "var(--accent)",
+  },
 ];
 
 const statusStyle: Record<ProjectEntry["status"], string> = {
