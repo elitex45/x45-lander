@@ -31,11 +31,39 @@ const techStack = [
 // that actually run.
 const liveProjects = [
   {
+    emoji: "📓",
+    name: "trading-journal",
+    url: "/projects/trading-journal",
+    desc: "paper trade live binance perps with real-time websocket data + replay historical bars. full order types, leverage, fees, funding, draggable tp/sl. trades auto-log with analytics dashboard — win rate, expectancy, profit factor, equity curve, calendar heatmap.",
+    label: "trading",
+  },
+  {
     emoji: "📈",
     name: "perps-replay",
     url: "/projects/perps-replay",
     desc: "bar-by-bar replay of any binance perp with full paper trading — limit/stop/tp/sl, leverage, liquidations. free, in-browser, no signup. built because every replay tool is paywalled.",
     label: "trading",
+  },
+  {
+    emoji: "📡",
+    name: "latency-checker",
+    url: "/projects/latency-checker",
+    desc: "pings any url from your browser, drops the cold-start sample, and tells you whether you're colocated, near, or too far for hf / momentum trading. no backend, no proxy.",
+    label: "networking",
+  },
+  {
+    emoji: "📝",
+    name: "readme-viewer",
+    url: "/projects/readme-viewer",
+    desc: "type markdown on the left, see it rendered on the right, export to a clean pdf when you're done. gfm tables, task lists, syntax-highlighted code. drafts persist locally.",
+    label: "writing",
+  },
+  {
+    emoji: "🍅",
+    name: "pomodoro",
+    url: "/projects/pomodoro",
+    desc: "25 minutes of focus, 5 minute break, repeat. big circular timer that changes color per mode, a chime when time's up, and a todo list that tracks how many pomodoros each task ate.",
+    label: "productivity",
   },
 ];
 

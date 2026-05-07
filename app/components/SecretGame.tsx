@@ -321,10 +321,10 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-mono text-center leading-relaxed pointer-events-none select-none"
               style={{ color: "rgba(255, 255, 255, 0.25)", maxWidth: "260px" }}
             >
-              let&apos;s see if you&apos;ve got sharp enough eyes
+              find the riddle. solve it.
               <br />
               <span style={{ color: "rgba(255,255,255,0.12)" }}>
-                something is hidden. find it.
+                that&apos;s how the cat will recognize you.
               </span>
             </motion.p>
           </motion.div>
