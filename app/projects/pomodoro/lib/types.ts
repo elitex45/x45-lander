@@ -1,5 +1,19 @@
 export type Mode = "focus" | "short" | "long";
 
+export type TimerStatus = "idle" | "running" | "paused";
+export type Palette = "friendly" | "ocean" | "garden" | "sunset";
+
+export type PomodoroSettings = {
+  palette: Palette;
+  focusMinutes: number;
+  shortMinutes: number;
+  longMinutes: number;
+  longBreakInterval: number;
+  autoStartBreaks: boolean;
+  autoStartFocus: boolean;
+  sound: boolean;
+};
+
 export type Todo = {
   id: string;
   text: string;

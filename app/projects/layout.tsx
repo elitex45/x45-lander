@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "../components/ThemeToggle";
-import { ThankMeButton } from "../components/ThankMeButton";
 
 export default function ProjectsLayout({ children }: { children: ReactNode }) {
   return (
@@ -24,14 +23,11 @@ export default function ProjectsLayout({ children }: { children: ReactNode }) {
             className="flex items-center gap-2 text-xs font-mono text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
           >
             <span aria-hidden="true">←</span>
-            <span>guru / x45.in</span>
+            <span>elitex45 / public workshop</span>
             <span className="text-[var(--border)]">/</span>
             <span className="text-[var(--accent)]">projects</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <ThankMeButton />
-            <ThemeToggle />
-          </div>
+          <ThemeToggle />
         </div>
       </nav>
 

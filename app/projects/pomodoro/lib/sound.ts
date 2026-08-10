@@ -68,5 +68,9 @@ export function playBell() {
 
     osc.start(now + start);
     osc.stop(now + start + 0.5);
+    osc.addEventListener("ended", () => {
+      osc.disconnect();
+      gain.disconnect();
+    });
   }
 }

@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Projects — Guru",
-  description: "Live tools built into this site. Free, open, in-browser.",
+  title: "Tools — elitex45 public workshop",
+  description: "Small, open-source browser tools for everyday friction.",
 };
 
 type ProjectEntry = {
@@ -19,15 +19,15 @@ type ProjectEntry = {
 
 const projects: ProjectEntry[] = [
   {
-    slug: "perps-replay",
-    emoji: "📈",
-    title: "Perps Replay",
+    slug: "expense-tracker",
+    emoji: "₹",
+    title: "Expense Tracker",
     blurb:
-      "Bar-by-bar replay of any Binance perp, with full paper trading — limit/stop/TP/SL, leverage up to 125×, isolated margin, liquidations. Free, in-browser, no signup. Built because every existing replay tool is paywalled.",
+      "A private INR expense ledger with fast filters, monthly summaries, and lossless backups. Your records stay in this browser—no signup or server.",
     status: "live",
-    href: "/projects/perps-replay",
-    label: "trading",
-    accent: "var(--accent)",
+    href: "/projects/expense-tracker",
+    label: "money",
+    accent: "var(--purple)",
   },
   {
     slug: "readme-viewer",
@@ -51,28 +51,6 @@ const projects: ProjectEntry[] = [
     label: "productivity",
     accent: "var(--accent)",
   },
-  {
-    slug: "latency-checker",
-    emoji: "📡",
-    title: "Latency Checker",
-    blurb:
-      "Pings any URL from your browser, drops the cold-start sample, and tells you whether you're colocated, near, or too far for HF / momentum trading. No backend, no proxy — what you measure is what your bot would get from this device.",
-    status: "live",
-    href: "/projects/latency-checker",
-    label: "networking",
-    accent: "var(--accent)",
-  },
-  {
-    slug: "trading-journal",
-    emoji: "📓",
-    title: "Trading Journal",
-    blurb:
-      "Paper trade live Binance perps with real-time WebSocket data — 1m to 4h candles, full order types, leverage, liquidations. Trades auto-log to a journal with analytics: win rate, expectancy, profit factor, equity curve, calendar heatmap, hourly/daily breakdown, per-pair and per-setup stats. No signup.",
-    status: "live",
-    href: "/projects/trading-journal",
-    label: "trading",
-    accent: "var(--accent)",
-  },
 ];
 
 const statusStyle: Record<ProjectEntry["status"], string> = {
@@ -89,11 +67,11 @@ export default function ProjectsIndexPage() {
           &gt; ./projects
         </p>
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--fg)] mb-3">
-          Things I built and put on the internet for free.
+          Small tools for everyday friction.
         </h1>
         <p className="text-sm text-[var(--muted)] leading-relaxed max-w-xl">
-          Live, in-browser tools that live in this repo. No signups, no
-          paywalls, no telemetry. If something here is useful, take it.
+          Focused, open-source tools that run in the browser. No signups, no
+          paywalls. Open one, inspect the code, or make it your own.
         </p>
       </header>
 

@@ -1,86 +1,64 @@
-"use client";
-
 import type { ModeMeta } from "../lib/modes";
+import type { TimerStatus } from "../lib/types";
+import styles from "../pomodoro.module.css";
 
 type Props = {
   mode: ModeMeta;
+  status: TimerStatus;
   secondsLeft: number;
   totalSeconds: number;
 };
 
-// Big circular progress timer. Two stacked SVG circles — a static track
-// and an animated foreground that drains as time passes. The foreground
-// stroke + the centered text both pick up the active mode's color so the
-// whole component flips its accent color when the mode changes.
-export function TimerCircle({ mode, secondsLeft, totalSeconds }: Props) {
-  const radius = 130;
-  const stroke = 8;
+export function TimerCircle({
+  mode,
+  status,
+  secondsLeft,
+  totalSeconds,
+}: Props) {
+  const radius = 45;
   const circumference = radius * 2 * Math.PI;
-  const progress = totalSeconds > 0 ? secondsLeft / totalSeconds : 0;
+  const progress = totalSeconds > 0
+    ? Math.min(1, Math.max(0, secondsLeft / totalSeconds))
+    : 0;
   const dashOffset = circumference * (1 - progress);
-
-  const min = Math.floor(secondsLeft / 60);
-  const sec = secondsLeft % 60;
-  const display = `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-
-  // Reserve 6px on each side for the soft drop-shadow / glow so it
-  // doesn't get clipped at the SVG viewBox edges.
-  const padding = 12;
-  const size = (radius + stroke / 2 + padding) * 2;
-  const center = size / 2;
+  const minutes = Math.floor(secondsLeft / 60);
+  const seconds = secondsLeft % 60;
+  const display = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
   return (
-    <div
-      className="relative inline-flex items-center justify-center"
-      style={{ width: size, height: size }}
-    >
+    <div className={styles.timerWrap}>
       <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        className="-rotate-90"
+        className={styles.timerSvg}
+        viewBox="0 0 100 100"
         aria-hidden="true"
       >
-        {/* Track */}
+        <circle className={styles.timerTrack} cx="50" cy="50" r={radius} />
         <circle
-          cx={center}
-          cy={center}
+          className={styles.timerProgress}
+          cx="50"
+          cy="50"
           r={radius}
-          fill="none"
-          stroke="var(--border)"
-          strokeWidth={stroke}
-        />
-        {/* Progress */}
-        <circle
-          cx={center}
-          cy={center}
-          r={radius}
-          fill="none"
-          stroke={mode.color}
-          strokeWidth={stroke}
-          strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={dashOffset}
-          style={{
-            transition:
-              "stroke-dashoffset 0.5s linear, stroke 0.5s ease",
-            filter: `drop-shadow(0 0 14px ${mode.glow})`,
-          }}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <div className="text-[10px] font-mono uppercase tracking-widest text-[var(--muted)] mb-2">
-          {mode.label}
-        </div>
-        <div
-          className="text-[64px] leading-none font-bold tabular-nums"
-          style={{ color: mode.color, transition: "color 0.5s ease" }}
+      <div className={styles.timerContent}>
+        <span className={styles.timerMode}>{mode.label}</span>
+        <time
+          className={styles.timerTime}
+          role="timer"
+          dateTime={`PT${secondsLeft}S`}
+          aria-label={`${minutes} minutes ${seconds} seconds remaining`}
         >
           {display}
-        </div>
-        <div className="text-[10px] font-mono text-[var(--muted)] mt-3 opacity-70">
-          {mode.description}
-        </div>
+        </time>
+        <span className={styles.timerState}>
+          {status === "running"
+            ? "In progress"
+            : status === "paused"
+              ? "Paused"
+              : mode.description}
+        </span>
       </div>
     </div>
   );

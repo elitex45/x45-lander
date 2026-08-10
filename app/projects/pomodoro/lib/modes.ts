@@ -10,10 +10,6 @@ import type { Mode } from "./types";
 export type ModeMeta = {
   id: Mode;
   label: string;
-  short: string; // "25", "05", "15" — shown next to label in mode buttons
-  durationSec: number;
-  color: string; // CSS expression — e.g. "var(--accent)"
-  glow: string; // CSS expression for the drop shadow on the timer ring
   description: string;
 };
 
@@ -21,29 +17,17 @@ export const MODES: Record<Mode, ModeMeta> = {
   focus: {
     id: "focus",
     label: "Focus",
-    short: "25",
-    durationSec: 25 * 60,
-    color: "var(--accent)",
-    glow: "var(--accent-glow)",
-    description: "Deep work — no interruptions",
+    description: "One thing at a time",
   },
   short: {
     id: "short",
     label: "Short Break",
-    short: "05",
-    durationSec: 5 * 60,
-    color: "var(--cyan)",
-    glow: "rgba(6, 182, 212, 0.35)",
-    description: "Stretch, water, quick walk",
+    description: "Stand up, stretch, get water",
   },
   long: {
     id: "long",
     label: "Long Break",
-    short: "15",
-    durationSec: 15 * 60,
-    color: "var(--purple)",
-    glow: "rgba(168, 85, 247, 0.35)",
-    description: "Step away — eat, walk, breathe",
+    description: "Step away and properly reset",
   },
 };
 

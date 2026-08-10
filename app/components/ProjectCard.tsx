@@ -8,12 +8,21 @@ interface ProjectCardProps {
   emoji: string;
   name: string;
   url: string;
+  sourceUrl?: string;
   desc: string;
   label: string;
   index: number;
 }
 
-export function ProjectCard({ emoji, name, url, desc, label, index }: ProjectCardProps) {
+export function ProjectCard({
+  emoji,
+  name,
+  url,
+  sourceUrl,
+  desc,
+  label,
+  index,
+}: ProjectCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
@@ -35,21 +44,15 @@ export function ProjectCard({ emoji, name, url, desc, label, index }: ProjectCar
   };
 
   const labelColors: Record<string, string> = {
-    "crypto \u00d7 AI": "text-[var(--accent)]",
-    "agent infra": "text-[var(--purple)]",
-    "dev tooling": "text-[var(--cyan)]",
-    "data": "text-[#facc15]",
-    "utility": "text-[#f87171]",
-    "trading": "text-[#34d399]",
+    "writing tool": "text-[var(--cyan)]",
+    "focus tool": "text-[var(--accent)]",
+    "money tool": "text-[var(--purple)]",
   };
 
   const labelBorders: Record<string, string> = {
-    "crypto \u00d7 AI": "border-[var(--accent)]",
-    "agent infra": "border-[var(--purple)]",
-    "dev tooling": "border-[var(--cyan)]",
-    "data": "border-[#facc15]",
-    "utility": "border-[#f87171]",
-    "trading": "border-[#34d399]",
+    "writing tool": "border-[var(--cyan)]",
+    "focus tool": "border-[var(--accent)]",
+    "money tool": "border-[var(--purple)]",
   };
 
   return (
@@ -84,7 +87,7 @@ export function ProjectCard({ emoji, name, url, desc, label, index }: ProjectCar
         {url.startsWith("/") ? (
           <Link
             href={url}
-            className="text-base font-semibold text-[var(--fg)] hover:text-[var(--accent)] transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 rounded-sm text-base font-semibold text-[var(--fg)] transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg)]"
           >
             <span className="text-sm">{emoji}</span>
             {name}
@@ -107,7 +110,7 @@ export function ProjectCard({ emoji, name, url, desc, label, index }: ProjectCar
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-base font-semibold text-[var(--fg)] hover:text-[var(--accent)] transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 rounded-sm text-base font-semibold text-[var(--fg)] transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg)]"
           >
             <span className="text-sm">{emoji}</span>
             {name}
@@ -135,6 +138,35 @@ export function ProjectCard({ emoji, name, url, desc, label, index }: ProjectCar
         </span>
       </div>
       <p className="text-sm text-[var(--muted)] leading-relaxed">{desc}</p>
+      <div className="mt-5 flex items-center gap-4 border-t border-[var(--border)] pt-4 text-xs font-mono">
+        {url.startsWith("/") ? (
+          <Link
+            href={url}
+            className="text-[var(--accent)] transition-colors hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg)] rounded-sm"
+          >
+            open tool →
+          </Link>
+        ) : (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[var(--accent)] transition-colors hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg)] rounded-sm"
+          >
+            open tool ↗
+          </a>
+        )}
+        {sourceUrl ? (
+          <a
+            href={sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[var(--muted)] transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg)] rounded-sm"
+          >
+            source ↗
+          </a>
+        ) : null}
+      </div>
     </motion.div>
   );
 }

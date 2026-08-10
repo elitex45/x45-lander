@@ -7,20 +7,23 @@ import { Providers } from "./providers";
 import { NO_FLASH_SCRIPT } from "./lib/theme";
 
 export const metadata: Metadata = {
-  title: "Guru — On-chain intelligence builder",
+  title: "elitex45 — Small open-source tools",
   description:
-    "Co-founder @zerufinance. Building at the intersection of crypto and AI — wallet reputation scoring, on-chain behavioral analysis, agent identity.",
+    "A public workshop for focused, open-source browser tools that make everyday work a little easier.",
   openGraph: {
-    title: "Guru — On-chain intelligence builder",
+    title: "elitex45 — Small open-source tools",
     description:
-      "Co-founder @zerufinance. Building at the intersection of crypto and AI.",
+      "Focused, open-source browser tools for everyday friction.",
     url: "https://x45.in",
-    siteName: "Guru",
-  },
-  twitter: {
-    card: "summary",
-    site: "@elitex45",
-    creator: "@elitex45",
+    siteName: "elitex45 public workshop",
+    images: [
+      {
+        url: "https://x45.in/og.png",
+        width: 1731,
+        height: 909,
+        alt: "elitex45 — small tools for a slightly easier day.",
+      },
+    ],
   },
 };
 

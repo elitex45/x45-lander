@@ -17,12 +17,14 @@ export default function ReadmeViewerPage() {
 
   useEffect(() => {
     const stored = load();
+    // Hydrate once from the browser's persisted state after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setContent(stored ?? SAMPLE_README);
     setHydrated(true);
   }, []);
 
-  // Debounced persist — same pattern as perps-replay so a fast typist
-  // doesn't hammer localStorage on every keystroke.
+  // Debounced persist so a fast typist doesn't hammer localStorage on every
+  // keystroke.
   const saveTimerRef = useRef<number | null>(null);
   useEffect(() => {
     if (!hydrated) return;
