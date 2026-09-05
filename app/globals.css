@@ -9,11 +9,11 @@
  */
 :root {
   color-scheme: light;
-  --bg: #f3f1ec;
-  --surface: #fbfaf7;
-  --fg: #191816;
-  --muted: #6e6a63;
-  --border: rgba(25, 24, 22, 0.1);
+  --bg: #f6f6f8;
+  --surface: #ffffff;
+  --fg: #121215;
+  --muted: #6b6b76;
+  --border: rgba(18, 18, 21, 0.1);
   --accent: #c4470f;
   --accent-dim: rgba(196, 71, 15, 0.1);
   --accent-fg: #fffaf5;
@@ -105,9 +105,8 @@ body {
 /* the lamp itself */
 .lamp::before {
   background:
-    radial-gradient(ellipse 34% 30% at 80% 8%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 70%),
-    radial-gradient(ellipse 30% 26% at 14% 92%, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent 70%),
-    radial-gradient(ellipse 22% 20% at 50% 55%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%);
+    radial-gradient(ellipse 30% 26% at 82% 4%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+    radial-gradient(ellipse 32% 28% at 12% 94%, color-mix(in srgb, var(--accent-2) 14%, transparent), transparent 70%);
   filter: blur(40px);
   animation: drift 26s ease-in-out infinite alternate;
 }
@@ -115,7 +114,7 @@ body {
 /* film grain */
 .lamp::after {
   inset: 0;
-  opacity: 0.22;
+  opacity: 0.08;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -260,7 +259,7 @@ body {
   flex: 1;
   min-height: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+    radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%),
     linear-gradient(180deg, color-mix(in srgb, var(--accent-2) 5%, transparent), transparent 60%);
   border-bottom: 1px solid var(--border);
   overflow: hidden;
