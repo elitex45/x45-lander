@@ -57,8 +57,8 @@
 }
 
 .app[data-palette="friendly"] {
-  --mode-fg: #b45309;
-  --mode-tint: #fff7ed;
+  --mode-fg: var(--accent);
+  --mode-tint: color-mix(in srgb, var(--accent) 8%, var(--bg));
 }
 
 .app[data-palette="friendly"][data-mode="short"] {
@@ -72,8 +72,8 @@
 }
 
 :global(.dark) .app[data-palette="friendly"] {
-  --mode-fg: #fdba74;
-  --mode-tint: #1c1917;
+  --mode-fg: var(--accent);
+  --mode-tint: color-mix(in srgb, var(--accent) 10%, var(--bg));
 }
 
 :global(.dark) .app[data-palette="friendly"][data-mode="short"] {
