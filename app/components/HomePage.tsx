@@ -7,6 +7,7 @@ import { useTheme } from "../lib/theme";
 import { PageCat } from "./PageCat";
 import { SecretGame } from "./SecretGame";
 import { SiteNav } from "./SiteNav";
+import { ThankMe } from "./ThankMe";
 import { ToolCard } from "./ToolCard";
 import { TOOLS } from "../lib/tools";
 
@@ -180,6 +181,7 @@ export function HomePage() {
         <footer className="flex flex-col gap-3 border-t border-[var(--border)] py-10 text-xs text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
           <p>Built slowly, shared freely. The cat is not for sale.</p>
           <div className="flex gap-5">
+            <ThankMe variant="link" />
             <a
               href="https://github.com/elitex45"
               target="_blank"

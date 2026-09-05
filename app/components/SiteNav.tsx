@@ -3,6 +3,7 @@ import {
   GithubLogoIcon,
   TelegramLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
+import { ThankMe } from "./ThankMe";
 import { ThemeToggle } from "./ThemeToggle";
 
 const iconLink =
@@ -67,6 +68,9 @@ export function SiteNav({ current }: { current?: string }) {
           >
             <TelegramLogoIcon size={18} aria-hidden="true" />
           </a>
+          <span className="hidden sm:inline-flex">
+            <ThankMe />
+          </span>
           <ThemeToggle />
         </div>
       </nav>
