@@ -78,5 +78,6 @@ export function useTheme(): ThemeContextValue {
 }
 
 // Stringified body of the no-flash script for layout.tsx to inject in <head>.
+// Light is the default. Dark only when the visitor chose it with the toggle.
 // Kept here so the storage key + class name stay co-located with the provider.
-export const NO_FLASH_SCRIPT = `(function(){try{var t=localStorage.getItem('${STORAGE_KEY}');if(!t)t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}})();`;
+export const NO_FLASH_SCRIPT = `(function(){try{var t=localStorage.getItem('${STORAGE_KEY}');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}})();`;
