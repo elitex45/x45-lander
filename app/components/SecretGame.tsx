@@ -251,11 +251,11 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
           <div className="flex flex-col items-center gap-5 max-w-sm text-center">
             <p
               className="text-xs font-mono leading-relaxed"
-              style={{ color: "#E8552E", textShadow: "0 0 12px rgba(232,85,46,0.3)" }}
+              style={{ color: "var(--accent)" }}
             >
               i&apos;m a small animal that the internet loves.
               <br />
-              people try to type my name all the time —
+              people try to type my name all the time,
               <br />
               but one letter always slips.
             </p>
@@ -271,18 +271,17 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
                 spellCheck={false}
                 className="bg-transparent border font-mono text-sm px-4 py-2 rounded-lg outline-none w-36 text-center"
                 style={{
-                  borderColor: "rgba(232, 85, 46, 0.4)",
-                  color: "#E8552E",
-                  caretColor: "#E8552E",
-                  textShadow: "0 0 8px rgba(232,85,46,0.3)",
+                  borderColor: "color-mix(in srgb, var(--accent) 45%, transparent)",
+                  color: "var(--accent)",
+                  caretColor: "var(--accent)",
                 }}
               />
               <button
                 type="submit"
-                className="font-mono text-xs px-3 py-2 rounded-lg border transition-colors hover:bg-[rgba(0,255,65,0.05)]"
+                className="font-mono text-xs px-3 py-2 rounded-lg border transition-colors hover:bg-[var(--accent-dim)]"
                 style={{
-                  borderColor: "rgba(232, 85, 46, 0.4)",
-                  color: "#E8552E",
+                  borderColor: "color-mix(in srgb, var(--accent) 45%, transparent)",
+                  color: "var(--accent)",
                 }}
               >
                 &gt;
@@ -373,9 +372,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
                 <p
                   className="text-2xl font-mono font-bold mb-2"
                   style={{
-                    color: "#00ff41",
-                    textShadow:
-                      "0 0 20px rgba(0,255,65,0.5), 0 0 40px rgba(0,255,65,0.2)",
+                    color: "var(--accent)",
                   }}
                 >
                   &gt; user authorized
@@ -385,7 +382,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.2 }}
                   className="text-xs font-mono"
-                  style={{ color: "rgba(0,255,65,0.4)" }}
+                  style={{ color: "var(--muted)" }}
                 >
                   the cat remembers you now
                 </motion.p>
@@ -400,10 +397,10 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
                       setShowAuth(false);
                       setPasswordValue("");
                     }}
-                    className="text-xs font-mono px-4 py-2 rounded border transition-all hover:bg-[rgba(0,255,65,0.1)]"
+                    className="text-xs font-mono px-4 py-2 rounded border transition-all hover:bg-[var(--accent-dim)]"
                     style={{
-                      borderColor: "rgba(0,255,65,0.3)",
-                      color: "rgba(0,255,65,0.6)",
+                      borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)",
+                      color: "var(--accent)",
                     }}
                   >
                     [ continue ]

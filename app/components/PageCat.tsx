@@ -82,6 +82,13 @@ export function PageCat({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
+    // Reduced motion: no walking cat. It still exists, it just sits.
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const accent =
+      getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() ||
+      "#f2a15a";
+    const accentAlpha = (alpha: number) =>
+      `color-mix(in srgb, ${accent} ${Math.round(alpha * 100)}%, transparent)`;
 
     let w = (canvas.width = window.innerWidth);
     let h = (canvas.height = window.innerHeight);
@@ -178,11 +185,11 @@ export function PageCat({
       }
 
       const s = SCALE;
-      const bodyColor = isDark ? "#c9cdd6" : "#3a3a3a";
-      const darkDetail = isDark ? "#8a8f9a" : "#222222";
+      const bodyColor = isDark ? "#d6d0c6" : "#3a3633";
+      const darkDetail = isDark ? "#8f887d" : "#1f1c1a";
       const eyeWhite = isDark ? "#ffffff" : "#ffffff";
       const nose = isDark ? "#ffb0b0" : "#ff9090";
-      const accentEye = isDark ? "#00ff41" : "#E8552E";
+      const accentEye = accent;
 
       // ── Tail ──
       cat.tailPhase += 0.06;
@@ -465,7 +472,7 @@ export function PageCat({
 
         // "prr" text
         ctx.font = `${4 * s}px monospace`;
-        ctx.fillStyle = isDark ? "rgba(0,255,65,0.3)" : "rgba(232,85,46,0.3)";
+        ctx.fillStyle = accentAlpha(0.3);
         const prrAlpha = 0.3 + Math.sin(time * 3) * 0.2;
         ctx.globalAlpha = prrAlpha;
         ctx.fillText("prr~", 14 * s, -20 * s);
@@ -477,7 +484,7 @@ export function PageCat({
         cat.sleepZzz += 0.02;
         const zFloat = Math.sin(cat.sleepZzz) * 3;
         ctx.font = `${8 * s}px monospace`;
-        ctx.fillStyle = isDark ? "rgba(0,255,65,0.5)" : "rgba(232,85,46,0.5)";
+        ctx.fillStyle = accentAlpha(0.5);
         ctx.fillText("z", 10 * s, -24 * s + zFloat);
         ctx.font = `${6 * s}px monospace`;
         ctx.fillText("z", 15 * s, -28 * s - zFloat);
@@ -627,10 +634,30 @@ export function PageCat({
     cat.state = "idle";
     cat.stateDuration = 2;
     cat.stateTime = 0;
-    animate();
+
+    if (reduceMotion) {
+      // Draw once, sitting, and stop.
+      cat.state = "sit";
+      drawCat(0);
+    } else {
+      animate();
+    }
+
+    // Pause the loop while the tab is hidden; resume when it comes back.
+    const onVisibility = () => {
+      if (reduceMotion) return;
+      if (document.hidden) {
+        cancelAnimationFrame(rafRef.current);
+      } else {
+        cancelAnimationFrame(rafRef.current);
+        animate();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
+      document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", onMouse);
       window.removeEventListener("scroll", onScroll);

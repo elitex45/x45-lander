@@ -1,60 +1,43 @@
 "use client";
 
+import { GithubLogoIcon } from "@phosphor-icons/react/dist/ssr";
 import { motion } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
 import { useTheme } from "../lib/theme";
 import { PageCat } from "./PageCat";
-import { ProjectCard } from "./ProjectCard";
-import { ScrollReveal, StaggerContainer } from "./ScrollReveal";
 import { SecretGame } from "./SecretGame";
-import { StarField } from "./StarField";
-import { ThemeToggle } from "./ThemeToggle";
+import { SiteNav } from "./SiteNav";
+import { ToolCard } from "./ToolCard";
+import { TOOLS } from "../lib/tools";
 
-const liveProjects = [
+const REPO = "https://github.com/elitex45/x45-lander";
+
+const principles = [
   {
-    emoji: "📝",
-    name: "README viewer",
-    url: "/projects/readme-viewer",
-    sourceUrl:
-      "https://github.com/elitex45/x45-lander/tree/main/app/projects/readme-viewer",
-    desc: "Turn a Markdown draft into a clean document and export it as a PDF, without leaving the browser or making an account.",
-    label: "writing tool",
+    title: "One job each.",
+    body: "A timer times. A ledger adds. Nothing grows a settings page it does not need.",
   },
   {
-    emoji: "🍅",
-    name: "Pomodoro timer",
-    url: "/projects/pomodoro",
-    sourceUrl:
-      "https://github.com/elitex45/x45-lander/tree/main/app/projects/pomodoro",
-    desc: "Give one task an honest 25 minutes. The timer, breaks, and a small task list stay together in your browser.",
-    label: "focus tool",
+    title: "No account, ever.",
+    body: "Your data stays on your machine. There is no server to leak it from.",
   },
   {
-    emoji: "₹",
-    name: "Expense tracker",
-    url: "/projects/expense-tracker",
-    sourceUrl:
-      "https://github.com/elitex45/x45-lander/tree/main/app/projects/expense-tracker",
-    desc: "Record everyday spending, filter the month, and see useful patterns. Everything stays private in this browser.",
-    label: "money tool",
+    title: "Code in the open.",
+    body: "Every tool has a public repo. Read it, fork it, fix it.",
   },
 ];
 
-const workshopNotes = ["one clear job", "no account required", "source in the open"];
-
-const navLinkClass =
-  "text-xs font-mono text-[var(--muted)] transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg)] rounded-sm";
+const ease = [0.16, 1, 0.3, 1] as const;
 
 export function HomePage() {
+  const newest = [...TOOLS].sort((a, b) => b.added.localeCompare(a.added))[0];
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
   const catPositionRef = useRef({ x: 200, y: 0 });
   const [fedTrigger, setFedTrigger] = useState(0);
   const [catFriendly, setCatFriendly] = useState(false);
-  const handleFeedCat = useCallback(() => {
-    setFedTrigger((prev) => prev + 1);
-  }, []);
+  const handleFeedCat = useCallback(() => setFedTrigger((n) => n + 1), []);
   const handlePhaseChange = useCallback((phase: string) => {
     if (phase === "authorized") setCatFriendly(true);
     if (phase === "idle") setCatFriendly(false);
@@ -62,14 +45,7 @@ export function HomePage() {
 
   return (
     <>
-      <StarField isDark={isDark} />
-      <div className="orb orb-1" aria-hidden="true" />
-      <div className="orb orb-2" aria-hidden="true" />
-      <div className="orb orb-3" aria-hidden="true" />
-      <div className="orb orb-4" aria-hidden="true" />
-      <div className="sunset-sky" aria-hidden="true" />
-      <div className="noise-overlay" aria-hidden="true" />
-      <div className="scan-line" aria-hidden="true" />
+      <div className="lamp" aria-hidden="true" />
       <PageCat
         isDark={isDark}
         positionRef={catPositionRef}
@@ -83,27 +59,127 @@ export function HomePage() {
         isDark={isDark}
       />
 
-      <main className="relative z-10 mx-auto max-w-2xl px-6">
-        <motion.nav
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-          className="sticky top-0 z-50 flex items-center justify-between py-8"
-          aria-label="Primary navigation"
+      <SiteNav />
+
+      <main className="relative z-10 mx-auto max-w-6xl px-5 sm:px-8">
+        {/* Hero: copy on the left, the tools themselves on the right. */}
+        <section
+          className="grid gap-10 pb-20 pt-10 lg:grid-cols-12 lg:gap-8 lg:pt-16"
+          aria-labelledby="hero-title"
         >
-          <div className="flex items-center gap-2">
-            <div className="pulse-dot" />
-            <span className="text-xs font-mono text-[var(--muted)]">
-              elitex45
-              <span className="hidden sm:inline"> / public workshop</span>
-            </span>
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease }}
+            className="flex flex-col justify-center lg:col-span-5 lg:pr-6"
+          >
+            <h1
+              id="hero-title"
+              className="text-4xl font-semibold leading-[1.02] tracking-tighter text-[var(--fg)] sm:text-5xl lg:text-[3.4rem]"
+            >
+              Small tools for a slightly easier day.
+            </h1>
+            <p className="mt-6 max-w-[38ch] text-base leading-relaxed text-[var(--muted)] sm:text-lg">
+              Free tools that do one job well. No accounts, no servers, and the
+              source is right there.
+            </p>
+            <div className="mt-8">
+              <a
+                href={REPO}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-[var(--fg)] px-5 text-sm font-medium text-[var(--bg)] transition-transform hover:-translate-y-px active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
+              >
+                <GithubLogoIcon size={16} weight="bold" aria-hidden="true" />
+                Read the source
+              </a>
+            </div>
+          </motion.div>
+
+          {/* Newest tool gets the big slot. It changes as the list grows. */}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { delayChildren: 0.15 } },
+            }}
+            className="grid lg:col-span-7"
+          >
+            <p className="mb-3 font-mono text-xs text-[var(--muted)]">
+              newest
+            </p>
+            <ToolCard tool={newest} className="min-h-[380px]" />
+          </motion.div>
+        </section>
+
+        {/* Everything except the newest. The grid just gets longer as more are added. */}
+        <section
+          id="tools"
+          className="scroll-mt-20 border-t border-[var(--border)] py-16 lg:py-20"
+          aria-labelledby="tools-title"
+        >
+          <div className="mb-8 flex items-end justify-between gap-6">
+            <h2
+              id="tools-title"
+              className="text-2xl font-semibold tracking-tight text-[var(--fg)] sm:text-3xl"
+            >
+              More tools
+            </h2>
+            <p className="font-mono text-xs text-[var(--muted)]">
+              {TOOLS.length} and counting
+            </p>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.07 } },
+            }}
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {TOOLS.filter((t) => t.slug !== newest.slug).map((tool) => (
+              <ToolCard key={tool.slug} tool={tool} className="min-h-[320px]" />
+            ))}
+          </motion.div>
+        </section>
+
+        {/* How they are built: three statements, no boxes. */}
+        <section className="border-t border-[var(--border)] py-16 lg:py-20" aria-labelledby="how-title">
+          <h2 id="how-title" className="sr-only">
+            How these tools are built
+          </h2>
+          <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
+            {principles.map((p, i) => (
+              <motion.div
+                key={p.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ duration: 0.6, delay: i * 0.08, ease }}
+                className={i === 1 ? "lg:mt-10" : i === 2 ? "lg:mt-20" : ""}
+              >
+                <h3 className="text-2xl font-semibold tracking-tight text-[var(--fg)] sm:text-3xl">
+                  {p.title}
+                </h3>
+                <p className="mt-3 max-w-[34ch] text-[15px] leading-relaxed text-[var(--muted)]">
+                  {p.body}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        <footer className="flex flex-col gap-3 border-t border-[var(--border)] py-10 text-xs text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
+          <p>Built slowly, shared freely. The cat is not for sale.</p>
+          <div className="flex gap-5">
             <a
               href="https://github.com/elitex45"
               target="_blank"
               rel="noopener noreferrer"
-              className={navLinkClass}
+              className="transition-colors hover:text-[var(--accent)]"
             >
               GitHub
             </a>
@@ -111,108 +187,12 @@ export function HomePage() {
               href="https://t.me/elitex45"
               target="_blank"
               rel="noopener noreferrer"
-              className={navLinkClass}
+              className="transition-colors hover:text-[var(--accent)]"
             >
               Telegram
             </a>
-            <span>
-              <ThemeToggle />
-            </span>
           </div>
-        </motion.nav>
-
-        <motion.section
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-          className="flex min-h-[68vh] flex-col justify-center pb-20 pt-16"
-        >
-          <p className="mb-5 text-xs font-mono uppercase tracking-[0.2em] text-[var(--accent)]">
-            open source for everyday friction
-          </p>
-          <h1 className="max-w-xl text-4xl font-bold tracking-tight text-[var(--fg)] md:text-6xl">
-            Small tools for a slightly easier day.
-          </h1>
-          <p className="mt-6 max-w-lg text-base leading-relaxed text-[var(--muted)] md:text-lg">
-            Focused, free browser tools for the bits of work that should be
-            simpler: writing a README, staying with one task, and whatever small
-            friction is worth removing next.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <a
-              href="#tools"
-              className="rounded-full border border-[var(--accent)] bg-[var(--accent-dim)] px-4 py-2 text-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg)]"
-            >
-              see the tools ↓
-            </a>
-            <a
-              href="https://github.com/elitex45"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full px-4 py-2 text-sm text-[var(--muted)] transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--bg)]"
-            >
-              browse the source ↗
-            </a>
-          </div>
-        </motion.section>
-
-        <section
-          className="mb-24"
-          aria-label="Workshop principles"
-        >
-          <ScrollReveal>
-            <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--border)] sm:grid-cols-3">
-              {workshopNotes.map((note, index) => (
-                <div
-                  key={note}
-                  className="bg-[var(--bg)] px-4 py-4 text-xs font-mono text-[var(--muted)]"
-                >
-                  <span className="mr-2 text-[var(--accent)]">
-                    0{index + 1}
-                  </span>
-                  {note}
-                </div>
-              ))}
-            </div>
-          </ScrollReveal>
-        </section>
-
-        <section
-          id="tools"
-          className="mb-24 scroll-mt-24"
-        >
-          <ScrollReveal>
-            <div className="mb-8 flex items-end justify-between gap-6">
-              <div>
-                <p className="text-xs font-mono uppercase tracking-[0.2em] text-[var(--accent)]">
-                  on the workbench
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--fg)]">
-                  Three useful things
-                </h2>
-              </div>
-              <p className="hidden max-w-[15rem] text-right text-xs leading-relaxed text-[var(--muted)] sm:block">
-                Open them, use them, inspect the code, or make them your own.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <StaggerContainer className="space-y-4">
-            {liveProjects.map((project, index) => (
-              <ProjectCard key={project.name} {...project} index={index} />
-            ))}
-          </StaggerContainer>
-        </section>
-
-        <ScrollReveal>
-          <footer className="pb-12">
-            <div className="gradient-line mb-6" />
-            <div className="flex flex-col gap-2 text-xs font-mono text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
-              <span>built slowly, shared freely.</span>
-              <span>elitex45 · {new Date().getFullYear()}</span>
-            </div>
-          </footer>
-        </ScrollReveal>
+        </footer>
       </main>
     </>
   );

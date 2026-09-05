@@ -7,21 +7,22 @@ import { Providers } from "./providers";
 import { NO_FLASH_SCRIPT } from "./lib/theme";
 
 export const metadata: Metadata = {
-  title: "elitex45 — Small open-source tools",
+  metadataBase: new URL("https://x45.in"),
+  title: "elitex45. Small tools for a slightly easier day.",
   description:
-    "A public workshop for focused, open-source browser tools that make everyday work a little easier.",
+    "Free, open-source browser tools that do one job well: a focus timer, a Markdown to PDF viewer, and a private expense tracker.",
   openGraph: {
-    title: "elitex45 — Small open-source tools",
+    title: "elitex45. Small tools for a slightly easier day.",
     description:
-      "Focused, open-source browser tools for everyday friction.",
+      "Free, open-source browser tools that do one job well. No accounts, no servers.",
     url: "https://x45.in",
-    siteName: "elitex45 public workshop",
+    siteName: "elitex45 workshop",
     images: [
       {
-        url: "https://x45.in/og.png",
-        width: 1731,
-        height: 909,
-        alt: "elitex45 — small tools for a slightly easier day.",
+        url: "/og.jpg",
+        width: 1600,
+        height: 840,
+        alt: "elitex45: small tools for a slightly easier day.",
       },
     ],
   },
