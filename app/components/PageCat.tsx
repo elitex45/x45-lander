@@ -86,7 +86,7 @@ export function PageCat({
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const accent =
       getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() ||
-      "#f2a15a";
+      "#2ee59d";
     const accentAlpha = (alpha: number) =>
       `color-mix(in srgb, ${accent} ${Math.round(alpha * 100)}%, transparent)`;
 

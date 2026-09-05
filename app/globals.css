@@ -27,22 +27,22 @@
   --cyan: #0e7490;
 }
 
-/* Dark is the terminal at night: near-black, phosphor green, a violet
- * second light. The green is the one the old site had. */
+/* Dark is the terminal at night: true near-black, crisp mint, a violet
+ * second light. Nothing warm in the base so the mint stays clean. */
 .dark {
   color-scheme: dark;
-  --bg: #0a0d12;
-  --surface: #11151c;
-  --fg: #e4e8ee;
-  --muted: #8a929e;
-  --border: rgba(228, 232, 238, 0.1);
-  --accent: #00ff41;
-  --accent-dim: rgba(0, 255, 65, 0.12);
-  --accent-fg: #04140a;
-  --accent-2: #7c6cf0;
-  --glass: rgba(17, 21, 28, 0.55);
-  --glass-strong: rgba(17, 21, 28, 0.8);
-  --glass-line: rgba(255, 255, 255, 0.09);
+  --bg: #09090b;
+  --surface: #111113;
+  --fg: #f2f2f4;
+  --muted: #8b8b96;
+  --border: rgba(242, 242, 244, 0.1);
+  --accent: #2ee59d;
+  --accent-dim: rgba(46, 229, 157, 0.12);
+  --accent-fg: #06140d;
+  --accent-2: #8b5cf6;
+  --glass: rgba(17, 17, 19, 0.55);
+  --glass-strong: rgba(17, 17, 19, 0.82);
+  --glass-line: rgba(255, 255, 255, 0.1);
   --purple: #c4b5fd;
   --cyan: #67e8f9;
 }
@@ -126,9 +126,13 @@ body {
 
 .dark .lamp::before {
   background:
-    radial-gradient(ellipse 36% 32% at 80% 6%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 70%),
-    radial-gradient(ellipse 32% 28% at 12% 94%, color-mix(in srgb, var(--accent-2) 30%, transparent), transparent 70%),
-    radial-gradient(ellipse 24% 22% at 50% 55%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 70%);
+    radial-gradient(ellipse 30% 26% at 82% 4%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+    radial-gradient(ellipse 34% 30% at 10% 96%, color-mix(in srgb, var(--accent-2) 26%, transparent), transparent 70%),
+    radial-gradient(ellipse 26% 22% at 55% 50%, color-mix(in srgb, var(--accent-2) 6%, transparent), transparent 70%);
+}
+
+.dark .lamp::after {
+  opacity: 0.1;
 }
 
 @keyframes drift {
