@@ -15,9 +15,10 @@ const iconLink =
 export function SiteNav({ current }: { current?: string }) {
   return (
     <header
-      className="sticky top-0 z-40 border-b border-[var(--border)] backdrop-blur-md"
+      className="sticky top-0 z-40 border-b border-[var(--border)] backdrop-blur-xl backdrop-saturate-150"
       style={{
-        backgroundColor: "color-mix(in srgb, var(--bg) 82%, transparent)",
+        backgroundColor: "color-mix(in srgb, var(--bg) 62%, transparent)",
+        boxShadow: "0 1px 0 var(--glass-line) inset",
       }}
     >
       <nav

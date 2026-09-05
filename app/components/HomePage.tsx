@@ -77,7 +77,8 @@ export function HomePage() {
               id="hero-title"
               className="text-4xl font-semibold leading-[1.02] tracking-tighter text-[var(--fg)] sm:text-5xl lg:text-[3.4rem]"
             >
-              Small tools for a slightly easier day.
+              Small tools for a{" "}
+              <span className="text-shine">slightly easier</span> day.
             </h1>
             <p className="mt-6 max-w-[38ch] text-base leading-relaxed text-[var(--muted)] sm:text-lg">
               Free tools that do one job well. No accounts, no servers, and the
@@ -88,7 +89,7 @@ export function HomePage() {
                 href={REPO}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-11 items-center gap-2 rounded-full bg-[var(--fg)] px-5 text-sm font-medium text-[var(--bg)] transition-transform hover:-translate-y-px active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
+                className="btn-glow inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
               >
                 <GithubLogoIcon size={16} weight="bold" aria-hidden="true" />
                 Read the source
@@ -104,8 +105,9 @@ export function HomePage() {
               hidden: {},
               visible: { transition: { delayChildren: 0.15 } },
             }}
-            className="grid lg:col-span-7"
+            className="relative grid lg:col-span-7"
           >
+            <div className="halo" aria-hidden="true" />
             <p className="mb-3 font-mono text-xs text-[var(--muted)]">
               newest
             </p>
@@ -113,10 +115,12 @@ export function HomePage() {
           </motion.div>
         </section>
 
+        <hr className="rule" />
+
         {/* Everything except the newest. The grid just gets longer as more are added. */}
         <section
           id="tools"
-          className="scroll-mt-20 border-t border-[var(--border)] py-16 lg:py-20"
+          className="scroll-mt-20 py-16 lg:py-20"
           aria-labelledby="tools-title"
         >
           <div className="mb-8 flex items-end justify-between gap-6">
@@ -147,7 +151,8 @@ export function HomePage() {
         </section>
 
         {/* How they are built: three statements, no boxes. */}
-        <section className="border-t border-[var(--border)] py-16 lg:py-20" aria-labelledby="how-title">
+        <hr className="rule" />
+        <section className="py-16 lg:py-20" aria-labelledby="how-title">
           <h2 id="how-title" className="sr-only">
             How these tools are built
           </h2>

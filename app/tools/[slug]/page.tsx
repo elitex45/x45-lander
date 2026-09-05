@@ -81,7 +81,7 @@ export default async function ToolPage({
                   href={tool.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-11 items-center gap-2 rounded-full bg-[var(--fg)] px-5 text-sm font-medium text-[var(--bg)] transition-transform hover:-translate-y-px active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
+                  className="btn-glow inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
                 >
                   <GithubLogoIcon size={16} weight="bold" aria-hidden="true" />
                   {tool.cta}
@@ -90,7 +90,7 @@ export default async function ToolPage({
                 <>
                   <Link
                     href={tool.href}
-                    className="inline-flex h-11 items-center gap-2 rounded-full bg-[var(--fg)] px-5 text-sm font-medium text-[var(--bg)] transition-transform hover:-translate-y-px active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
+                    className="btn-glow inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
                   >
                     {tool.cta}
                     <ArrowUpRightIcon size={16} weight="bold" aria-hidden="true" />
@@ -99,7 +99,7 @@ export default async function ToolPage({
                     href={tool.repo}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-11 items-center gap-2 rounded-full border border-[var(--border)] px-5 text-sm font-medium text-[var(--fg)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
+                    className="btn-glass inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-medium text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
                   >
                     <GithubLogoIcon size={16} weight="bold" aria-hidden="true" />
                     Source
@@ -109,7 +109,8 @@ export default async function ToolPage({
             </div>
           </div>
 
-          <div className="lg:col-span-7">
+          <div className="relative lg:col-span-7">
+            <div className="halo" aria-hidden="true" />
             <div className="tool-card min-h-[380px]">
               <div className="tool-preview" aria-hidden="true">
                 {tool.preview ?? (
@@ -125,7 +126,8 @@ export default async function ToolPage({
           </div>
         </section>
 
-        <section className="mt-20 border-t border-[var(--border)] pt-10">
+        <hr className="rule mt-20" />
+        <section className="pt-10">
           <div className="mb-6 flex items-end justify-between gap-6">
             <h2 className="text-lg font-semibold tracking-tight">Other tools</h2>
             <Link
