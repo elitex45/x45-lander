@@ -36,7 +36,7 @@ interface Cat {
   sleepZzz: number;
 }
 
-const SCALE = 1.2;
+const SCALE = 1.35;
 const CAT_W = 30 * SCALE;
 const CAT_H = 28 * SCALE;
 const GROUND_OFFSET = 40; // px from bottom of viewport
@@ -90,16 +90,32 @@ export function PageCat({
     const accentAlpha = (alpha: number) =>
       `color-mix(in srgb, ${accent} ${Math.round(alpha * 100)}%, transparent)`;
 
-    let w = (canvas.width = window.innerWidth);
-    let h = (canvas.height = window.innerHeight);
+    // Draw at device resolution so the cat stays crisp on retina screens.
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    let w = window.innerWidth;
+    let h = window.innerHeight;
+    const fit = () => {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    fit();
 
     const cat = catRef.current;
     cat.y = h - GROUND_OFFSET;
     cat.x = w * 0.3 + Math.random() * w * 0.4;
 
     const resize = () => {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
+      const wasOnGround = Math.abs(cat.y - (h - GROUND_OFFSET)) < 5;
+      fit();
+      // Keep the cat on screen and on the ground when the window changes.
+      const groundY = h - GROUND_OFFSET;
+      cat.x = Math.max(CAT_W, Math.min(w - CAT_W, cat.x));
+      if (wasOnGround || cat.y > groundY) cat.y = groundY;
+      // Resizing wipes the canvas. With no animation loop, redraw by hand.
+      if (reduceMotion) drawCat(0);
     };
     const onMouse = (e: MouseEvent) => {
       mouseRef.current = { x: e.clientX, y: e.clientY };
@@ -177,6 +193,8 @@ export function PageCat({
     }
 
     // ── Draw cat ──
+    // Chibi proportions: big round head, puffy body, stubby paws.
+    // Origin is between the paws on the ground; the cat faces right.
     function drawCat(time: number) {
       ctx.save();
       ctx.translate(cat.x, cat.y);
@@ -185,110 +203,166 @@ export function PageCat({
       }
 
       const s = SCALE;
-      const bodyColor = isDark ? "#d6d0c6" : "#3a3633";
-      const darkDetail = isDark ? "#8f887d" : "#1f1c1a";
-      const eyeWhite = isDark ? "#ffffff" : "#ffffff";
-      const nose = isDark ? "#ffb0b0" : "#ff9090";
+      const bodyColor = isDark ? "#ebe4d8" : "#7b716a";
+      const bellyColor = isDark ? "#f9f5ee" : "#d9d0c6";
+      const darkDetail = isDark ? "#4a423b" : "#2b2622";
+      const nose = "#f4a6b0";
+      const blush = "rgba(255, 140, 150, 0.35)";
       const accentEye = accent;
 
-      // ── Tail ──
-      cat.tailPhase += 0.06;
-      const tailWag =
-        cat.state === "sleep"
-          ? Math.sin(cat.tailPhase * 0.3) * 3
-          : cat.state === "run-right" || cat.state === "run-left"
-          ? Math.sin(cat.tailPhase * 3) * 8
-          : Math.sin(cat.tailPhase) * 5;
-
-      ctx.beginPath();
-      ctx.moveTo(-8 * s, -8 * s);
-      ctx.bezierCurveTo(
-        -16 * s, -12 * s + tailWag * s * 0.3,
-        -20 * s, -20 * s + tailWag * s * 0.2,
-        -18 * s + tailWag * s * 0.1, -24 * s + tailWag * s * 0.15
-      );
-      ctx.strokeStyle = bodyColor;
-      ctx.lineWidth = 2.5 * s;
-      ctx.lineCap = "round";
-      ctx.stroke();
-
-      // ── Body ──
-      ctx.beginPath();
-      ctx.ellipse(0, -6 * s, 10 * s, 7 * s, 0, 0, Math.PI * 2);
-      ctx.fillStyle = bodyColor;
-      ctx.fill();
-
-      // ── Legs ──
-      const isWalking =
+      const isMoving =
         cat.state === "walk-right" ||
         cat.state === "walk-left" ||
         cat.state === "run-right" ||
         cat.state === "run-left";
-      const legSpeed =
-        cat.state === "run-right" || cat.state === "run-left" ? 12 : 6;
-      const legSwing = isWalking ? Math.sin(time * legSpeed) * 3 * s : 0;
-      const legY = 0;
+      const isRunning = cat.state === "run-right" || cat.state === "run-left";
+      const sleeping = cat.state === "sleep";
+      const happy = cat.state === "eat" || cat.state === "cuddle";
+      // Idle breathing: the whole puff swells a little.
+      const breathe = sleeping ? Math.sin(time * 1.5) * 0.6 : Math.sin(time * 2.5) * 0.35;
+      // Walk bounce
+      const bounce = isMoving ? Math.abs(Math.sin(time * (isRunning ? 12 : 6))) * 1.2 : 0;
 
-      // Front legs
-      ctx.fillStyle = darkDetail;
-      ctx.fillRect(4 * s + legSwing, legY - 2 * s, 2.5 * s, 6 * s);
-      ctx.fillRect(7 * s - legSwing, legY - 2 * s, 2.5 * s, 6 * s);
-      // Back legs
-      ctx.fillRect(-7 * s - legSwing, legY - 2 * s, 2.5 * s, 6 * s);
-      ctx.fillRect(-4 * s + legSwing, legY - 2 * s, 2.5 * s, 6 * s);
-
-      // Paws
-      ctx.fillStyle = bodyColor;
-      for (const px of [4 + legSwing / s, 7 - legSwing / s, -7 - legSwing / s, -4 + legSwing / s]) {
+      const puff = (x: number, y: number, r: number, color: string) => {
         ctx.beginPath();
-        ctx.arc(px * s + 1.25 * s, legY + 4 * s, 1.8 * s, 0, Math.PI * 2);
+        ctx.arc(x * s, y * s, r * s, 0, Math.PI * 2);
+        ctx.fillStyle = color;
         ctx.fill();
+      };
+
+      // ── Shadow ──
+      ctx.beginPath();
+      ctx.ellipse(1 * s, 1.5 * s, 13 * s, 2.5 * s, 0, 0, Math.PI * 2);
+      ctx.fillStyle = isDark ? "rgba(0,0,0,0.35)" : "rgba(30,20,10,0.14)";
+      ctx.fill();
+
+      ctx.translate(0, -bounce * s);
+
+      // ── Tail: thick, fluffy, curls up behind ──
+      cat.tailPhase += 0.05;
+      const tailWag = sleeping
+        ? Math.sin(cat.tailPhase * 0.3) * 2
+        : isRunning
+        ? Math.sin(cat.tailPhase * 3) * 7
+        : Math.sin(cat.tailPhase) * 4;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(-9 * s, -8 * s);
+      ctx.bezierCurveTo(
+        -19 * s, -9 * s + tailWag * s * 0.3,
+        -22 * s, -19 * s + tailWag * s * 0.4,
+        -16 * s + tailWag * s * 0.2, -25 * s + tailWag * s * 0.3
+      );
+      ctx.strokeStyle = bodyColor;
+      ctx.lineWidth = 5.5 * s;
+      ctx.stroke();
+      // Lighter fluffy tip
+      puff(-16 + tailWag * 0.2, -25 + tailWag * 0.3, 3.4, bellyColor);
+
+      // ── Back legs (stubby, rounded) ──
+      const legSpeed = isRunning ? 12 : 6;
+      const swing = isMoving ? Math.sin(time * legSpeed) * 2.5 : 0;
+      const legRect = (x: number, y: number, w2: number, h2: number, color: string) => {
+        ctx.beginPath();
+        ctx.roundRect(x * s, y * s, w2 * s, h2 * s, 2.5 * s);
+        ctx.fillStyle = color;
+        ctx.fill();
+      };
+      legRect(-9 - swing, -7, 5.5, 8, darkDetail);
+      legRect(6 + swing, -7, 5.5, 8, darkDetail);
+
+      // ── Body: an ellipse plus a ring of puffs so the edge looks like fur ──
+      const bw = 13 + breathe;
+      const bh = 10 + breathe * 0.6;
+      ctx.beginPath();
+      ctx.ellipse(0, -10 * s, bw * s, bh * s, 0, 0, Math.PI * 2);
+      ctx.fillStyle = bodyColor;
+      ctx.fill();
+      for (let i = 0; i < 9; i++) {
+        const a = Math.PI * 0.15 + (i / 8) * Math.PI * 0.7; // along the belly edge
+        puff(Math.cos(a) * (bw - 1.5), -10 + Math.sin(a) * (bh - 1), 3, bodyColor);
       }
+
+      // ── Front legs ──
+      legRect(-3 + swing, -6, 5.5, 8, bodyColor);
+      legRect(2.5 - swing, -6, 5.5, 8, bodyColor);
+      // Toe beans
+      for (const px of [-3 + swing, 2.5 - swing]) {
+        puff(px + 2.75, 1, 1.6, bellyColor);
+      }
+      // Back paws peeking
+      for (const px of [-9 - swing, 6 + swing]) {
+        puff(px + 2.75, 1, 1.6, bellyColor);
+      }
+
+      // ── Belly ──
+      ctx.beginPath();
+      ctx.ellipse(2 * s, -8 * s, 8 * s, 5.5 * s, 0, 0, Math.PI * 2);
+      ctx.fillStyle = bellyColor;
+      ctx.fill();
 
       // ── Groom: lifted paw ──
       if (cat.state === "groom") {
         const groomCycle = Math.sin(time * 4);
-        ctx.fillStyle = bodyColor;
-        ctx.beginPath();
-        ctx.arc(3 * s, -16 * s + groomCycle * 2 * s, 3 * s, 0, Math.PI * 2);
-        ctx.fill();
+        puff(7, -19 + groomCycle * 2, 3.5, bodyColor);
+        puff(7, -19 + groomCycle * 2, 1.4, bellyColor);
       }
 
-      // ── Head ──
-      ctx.beginPath();
-      ctx.arc(2 * s, -16 * s, 8 * s, 0, Math.PI * 2);
-      ctx.fillStyle = bodyColor;
-      ctx.fill();
+      // ── Head: big round, with fluffy cheeks ──
+      const hx = 3;
+      const hy = -23 + breathe * 0.3;
+      const hr = 12;
+      // Ears (behind head)
+      const ear = (bx: number, tipX: number, tipY: number, ex: number) => {
+        ctx.beginPath();
+        ctx.moveTo(bx * s, (hy - 6) * s);
+        ctx.quadraticCurveTo(((bx + tipX) / 2 - 0.5) * s, (tipY + 2) * s, tipX * s, tipY * s);
+        ctx.quadraticCurveTo(((tipX + ex) / 2 + 0.5) * s, (tipY + 2) * s, ex * s, (hy - 5) * s);
+        ctx.closePath();
+        ctx.fillStyle = bodyColor;
+        ctx.fill();
+        // inner ear
+        ctx.beginPath();
+        ctx.moveTo((bx + 1.5) * s, (hy - 7) * s);
+        ctx.quadraticCurveTo(((bx + tipX) / 2) * s, (tipY + 3.5) * s, tipX * s, (tipY + 2.5) * s);
+        ctx.quadraticCurveTo(((tipX + ex) / 2) * s, (tipY + 3.5) * s, (ex - 1.5) * s, (hy - 6.5) * s);
+        ctx.closePath();
+        ctx.fillStyle = nose;
+        ctx.fill();
+      };
+      const earFlick = Math.sin(time * 0.7) > 0.97 ? -1.5 : 0;
+      ear(hx - 10, hx - 8, hy - 18 + earFlick, hx - 2);
+      ear(hx + 3, hx + 9, hy - 18, hx + 11);
 
-      // ── Ears ──
+      // Cheek fluff
+      puff(hx - 10, hy + 3, 6, bodyColor);
+      puff(hx + 10, hy + 3, 6, bodyColor);
+      puff(hx - 7, hy + 7, 5, bodyColor);
+      puff(hx + 7, hy + 7, 5, bodyColor);
+      // Head
+      puff(hx, hy, hr, bodyColor);
+      // Muzzle
       ctx.beginPath();
-      ctx.moveTo(-4 * s, -22 * s);
-      ctx.lineTo(-1 * s, -28 * s);
-      ctx.lineTo(2 * s, -22 * s);
-      ctx.fillStyle = bodyColor;
+      ctx.ellipse(hx * s, (hy + 5) * s, 6.5 * s, 4.5 * s, 0, 0, Math.PI * 2);
+      ctx.fillStyle = bellyColor;
       ctx.fill();
-      // Inner ear
-      ctx.beginPath();
-      ctx.moveTo(-3 * s, -22 * s);
-      ctx.lineTo(-0.5 * s, -26.5 * s);
-      ctx.lineTo(1 * s, -22 * s);
-      ctx.fillStyle = nose;
-      ctx.fill();
+      // Forehead tuft
+      puff(hx - 1, hy - 10, 2.2, bellyColor);
+      puff(hx + 1.5, hy - 10.5, 1.8, bellyColor);
 
+      // ── Blush (always, it is a cute cat) ──
+      ctx.fillStyle = blush;
       ctx.beginPath();
-      ctx.moveTo(5 * s, -22 * s);
-      ctx.lineTo(8 * s, -28 * s);
-      ctx.lineTo(10 * s, -22 * s);
-      ctx.fillStyle = bodyColor;
+      ctx.ellipse((hx - 8) * s, (hy + 4) * s, 3 * s, 1.8 * s, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.moveTo(6 * s, -22 * s);
-      ctx.lineTo(8 * s, -26.5 * s);
-      ctx.lineTo(9.5 * s, -22 * s);
-      ctx.fillStyle = nose;
+      ctx.ellipse((hx + 8) * s, (hy + 4) * s, 3 * s, 1.8 * s, 0, 0, Math.PI * 2);
       ctx.fill();
 
       // ── Eyes ──
+      const eyL = hx - 4.5;
+      const eyR = hx + 4.5;
+      const eyY = hy - 1;
       cat.blinkTimer += 0.016;
       if (!cat.isBlinking && cat.blinkTimer > 2.5 + Math.random() * 3) {
         cat.isBlinking = true;
@@ -299,32 +373,38 @@ export function PageCat({
         cat.blinkTimer = 0;
       }
 
-      if (cat.state === "sleep") {
-        // Closed eyes — two curved lines
-        ctx.beginPath();
-        ctx.arc(-1 * s, -17 * s, 2 * s, 0, Math.PI, false);
+      const closedEyes = (curveUp: boolean) => {
         ctx.strokeStyle = darkDetail;
-        ctx.lineWidth = 1.2 * s;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(5 * s, -17 * s, 2 * s, 0, Math.PI, false);
-        ctx.stroke();
-      } else if (cat.state === "eat" || cat.state === "cuddle") {
-        // Eyes drawn in their respective blocks — skip here
+        ctx.lineWidth = 1.4 * s;
+        ctx.lineCap = "round";
+        for (const ex of [eyL, eyR]) {
+          ctx.beginPath();
+          if (curveUp) {
+            // happy ^ ^
+            ctx.arc(ex * s, (eyY + 1) * s, 2.6 * s, Math.PI + 0.35, -0.35, false);
+          } else {
+            // sleepy u u
+            ctx.arc(ex * s, (eyY - 0.5) * s, 2.4 * s, 0.35, Math.PI - 0.35, false);
+          }
+          ctx.stroke();
+        }
+      };
+
+      if (sleeping) {
+        closedEyes(false);
+      } else if (happy) {
+        closedEyes(true);
       } else if (cat.isBlinking) {
-        // Blink — horizontal lines
         ctx.strokeStyle = darkDetail;
-        ctx.lineWidth = 1.5 * s;
-        ctx.beginPath();
-        ctx.moveTo(-3 * s, -17 * s);
-        ctx.lineTo(1 * s, -17 * s);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(3 * s, -17 * s);
-        ctx.lineTo(7 * s, -17 * s);
-        ctx.stroke();
+        ctx.lineWidth = 1.4 * s;
+        for (const ex of [eyL, eyR]) {
+          ctx.beginPath();
+          ctx.moveTo((ex - 2.5) * s, eyY * s);
+          ctx.lineTo((ex + 2.5) * s, eyY * s);
+          ctx.stroke();
+        }
       } else {
-        // Open eyes — look toward mouse
+        // Big sparkly eyes that follow the cursor a little.
         let lookX = 0;
         let lookY = 0;
         if (cat.state === "look") {
@@ -332,164 +412,116 @@ export function PageCat({
           const dy = mouseRef.current.y - cat.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist > 0) {
-            lookX = (dx / dist) * 1.2 * s * (cat.facingRight ? 1 : -1);
-            lookY = (dy / dist) * 1.2 * s;
+            lookX = (dx / dist) * 1 * (cat.facingRight ? 1 : -1);
+            lookY = (dy / dist) * 1;
           }
         }
-
-        // Eye whites
-        ctx.beginPath();
-        ctx.ellipse(-1 * s, -17 * s, 2.5 * s, 3 * s, 0, 0, Math.PI * 2);
-        ctx.fillStyle = eyeWhite;
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(5 * s, -17 * s, 2.5 * s, 3 * s, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Pupils
-        ctx.beginPath();
-        ctx.ellipse(-1 * s + lookX, -17 * s + lookY, 1.3 * s, 2 * s, 0, 0, Math.PI * 2);
-        ctx.fillStyle = accentEye;
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(5 * s + lookX, -17 * s + lookY, 1.3 * s, 2 * s, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Pupil glint
-        ctx.beginPath();
-        ctx.arc(-0.5 * s + lookX, -18 * s + lookY, 0.5 * s, 0, Math.PI * 2);
-        ctx.fillStyle = "#ffffff";
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(5.5 * s + lookX, -18 * s + lookY, 0.5 * s, 0, Math.PI * 2);
-        ctx.fill();
+        for (const ex of [eyL, eyR]) {
+          // white
+          ctx.beginPath();
+          ctx.ellipse(ex * s, eyY * s, 3.4 * s, 4 * s, 0, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+          // iris
+          ctx.beginPath();
+          ctx.ellipse((ex + lookX) * s, (eyY + lookY) * s, 2.6 * s, 3.1 * s, 0, 0, Math.PI * 2);
+          ctx.fillStyle = accentEye;
+          ctx.fill();
+          // pupil
+          ctx.beginPath();
+          ctx.ellipse((ex + lookX) * s, (eyY + lookY + 0.3) * s, 1.5 * s, 2.1 * s, 0, 0, Math.PI * 2);
+          ctx.fillStyle = darkDetail;
+          ctx.fill();
+          // glints
+          puff(ex + lookX - 1, eyY + lookY - 1.6, 1, "#ffffff");
+          puff(ex + lookX + 1.2, eyY + lookY + 1.4, 0.5, "#ffffff");
+        }
       }
 
       // ── Nose ──
       ctx.beginPath();
-      ctx.moveTo(2 * s, -14 * s);
-      ctx.lineTo(1 * s, -12.5 * s);
-      ctx.lineTo(3 * s, -12.5 * s);
-      ctx.closePath();
+      ctx.moveTo((hx - 1.4) * s, (hy + 3.6) * s);
+      ctx.lineTo((hx + 1.4) * s, (hy + 3.6) * s);
+      ctx.quadraticCurveTo((hx + 0.6) * s, (hy + 5.4) * s, hx * s, (hy + 5.4) * s);
+      ctx.quadraticCurveTo((hx - 0.6) * s, (hy + 5.4) * s, (hx - 1.4) * s, (hy + 3.6) * s);
       ctx.fillStyle = nose;
       ctx.fill();
 
-      // ── Mouth ──
-      ctx.beginPath();
-      ctx.moveTo(2 * s, -12.5 * s);
-      ctx.lineTo(0.5 * s, -11 * s);
+      // ── Mouth: a tiny "w" ──
       ctx.strokeStyle = darkDetail;
-      ctx.lineWidth = 0.8 * s;
+      ctx.lineWidth = 0.9 * s;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(hx * s, (hy + 5.4) * s);
+      ctx.lineTo(hx * s, (hy + 6.4) * s);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(2 * s, -12.5 * s);
-      ctx.lineTo(3.5 * s, -11 * s);
+      ctx.arc((hx - 1.6) * s, (hy + 6.2) * s, 1.6 * s, 0.1, Math.PI - 0.4, false);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc((hx + 1.6) * s, (hy + 6.2) * s, 1.6 * s, 0.4, Math.PI - 0.1, false);
       ctx.stroke();
 
       // ── Whiskers ──
-      ctx.strokeStyle = isDark ? "#888" : "#999";
-      ctx.lineWidth = 0.5 * s;
+      ctx.strokeStyle = isDark ? "rgba(255,255,255,0.45)" : "rgba(43,38,34,0.4)";
+      ctx.lineWidth = 0.6 * s;
       for (const [ox, oy, ex, ey] of [
-        [-4, -14, -12, -15],
-        [-4, -13, -12, -12],
-        [8, -14, 16, -15],
-        [8, -13, 16, -12],
+        [-7, 3, -18, 1],
+        [-7, 4.5, -18, 5],
+        [-7, 6, -17, 8.5],
+        [7, 3, 18, 1],
+        [7, 4.5, 18, 5],
+        [7, 6, 17, 8.5],
       ]) {
         ctx.beginPath();
-        ctx.moveTo(ox * s, oy * s);
-        ctx.lineTo(ex * s, ey * s);
+        ctx.moveTo((hx + ox) * s, (hy + oy) * s);
+        ctx.lineTo((hx + ex) * s, (hy + ey) * s);
         ctx.stroke();
       }
 
-      // ── Eat: happy squint + fish ──
+      // ── Eat: fish + hearts ──
       if (cat.state === "eat") {
         const eatBounce = Math.sin(time * 8) * 1.5 * s;
-        // Fish in mouth
         ctx.font = `${10 * s}px serif`;
-        ctx.fillText("\uD83D\uDC1F", 8 * s, -10 * s + eatBounce);
-        // Happy squint eyes (^  ^)
-        ctx.strokeStyle = accentEye;
-        ctx.lineWidth = 1.5 * s;
-        ctx.beginPath();
-        ctx.arc(-1 * s, -17 * s, 2.5 * s, Math.PI + 0.3, -0.3, false);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(5 * s, -17 * s, 2.5 * s, Math.PI + 0.3, -0.3, false);
-        ctx.stroke();
-        // Blush
-        ctx.fillStyle = "rgba(255, 150, 150, 0.35)";
-        ctx.beginPath();
-        ctx.ellipse(-4 * s, -14 * s, 2.5 * s, 1.5 * s, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(8 * s, -14 * s, 2.5 * s, 1.5 * s, 0, 0, Math.PI * 2);
-        ctx.fill();
-        // Hearts floating up
-        const heartY1 = -28 * s - cat.stateTime * 20;
-        const heartY2 = -32 * s - cat.stateTime * 15;
+        ctx.fillText("🐟", (hx + 8) * s, (hy + 9) * s + eatBounce);
+        const heartY1 = (hy - 14) * s - cat.stateTime * 20;
+        const heartY2 = (hy - 18) * s - cat.stateTime * 15;
         ctx.font = `${6 * s}px serif`;
         ctx.globalAlpha = Math.max(0, 1 - cat.stateTime * 0.6);
-        ctx.fillText("\u2764\uFE0F", 12 * s + Math.sin(time * 3) * 3, heartY1);
-        ctx.fillText("\u2764\uFE0F", -8 * s + Math.sin(time * 2.5) * 3, heartY2);
+        ctx.fillText("❤️", (hx + 12) * s + Math.sin(time * 3) * 3, heartY1);
+        ctx.fillText("❤️", (hx - 14) * s + Math.sin(time * 2.5) * 3, heartY2);
         ctx.globalAlpha = 1;
       }
 
-      // ── Cuddle: happy purring ──
+      // ── Cuddle: purring ──
       if (cat.state === "cuddle") {
-        // Body vibrates gently (purring)
-        const purr = Math.sin(time * 20) * 0.5 * s;
-        ctx.translate(purr, 0);
-
-        // Happy squint eyes
-        ctx.strokeStyle = accentEye;
-        ctx.lineWidth = 1.5 * s;
-        ctx.beginPath();
-        ctx.arc(-1 * s, -17 * s, 2.5 * s, Math.PI + 0.3, -0.3, false);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(5 * s, -17 * s, 2.5 * s, Math.PI + 0.3, -0.3, false);
-        ctx.stroke();
-
-        // Blush cheeks
-        ctx.fillStyle = "rgba(255, 150, 150, 0.4)";
-        ctx.beginPath();
-        ctx.ellipse(-4 * s, -14 * s, 2.5 * s, 1.5 * s, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(8 * s, -14 * s, 2.5 * s, 1.5 * s, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Floating hearts (cycle)
         const heartPhase = time * 1.5;
-        const h1y = -30 * s + Math.sin(heartPhase) * 4 * s;
-        const h2y = -34 * s + Math.sin(heartPhase + 1) * 4 * s;
+        const h1y = (hy - 15) * s + Math.sin(heartPhase) * 4 * s;
+        const h2y = (hy - 19) * s + Math.sin(heartPhase + 1) * 4 * s;
         ctx.font = `${5 * s}px serif`;
         ctx.globalAlpha = 0.5 + Math.sin(heartPhase) * 0.3;
-        ctx.fillText("\u2764\uFE0F", 12 * s + Math.sin(heartPhase * 0.7) * 3, h1y);
+        ctx.fillText("❤️", (hx + 12) * s + Math.sin(heartPhase * 0.7) * 3, h1y);
         ctx.globalAlpha = 0.4 + Math.sin(heartPhase + 2) * 0.3;
-        ctx.fillText("\u2764\uFE0F", -10 * s + Math.sin(heartPhase * 0.5) * 3, h2y);
+        ctx.fillText("❤️", (hx - 16) * s + Math.sin(heartPhase * 0.5) * 3, h2y);
         ctx.globalAlpha = 1;
-
-        // "prr" text
         ctx.font = `${4 * s}px monospace`;
         ctx.fillStyle = accentAlpha(0.3);
-        const prrAlpha = 0.3 + Math.sin(time * 3) * 0.2;
-        ctx.globalAlpha = prrAlpha;
-        ctx.fillText("prr~", 14 * s, -20 * s);
+        ctx.globalAlpha = 0.3 + Math.sin(time * 3) * 0.2;
+        ctx.fillText("prr~", (hx + 14) * s, (hy - 4) * s);
         ctx.globalAlpha = 1;
       }
 
       // ── Sleep Zzz ──
-      if (cat.state === "sleep") {
+      if (sleeping) {
         cat.sleepZzz += 0.02;
         const zFloat = Math.sin(cat.sleepZzz) * 3;
-        ctx.font = `${8 * s}px monospace`;
         ctx.fillStyle = accentAlpha(0.5);
-        ctx.fillText("z", 10 * s, -24 * s + zFloat);
+        ctx.font = `${8 * s}px monospace`;
+        ctx.fillText("z", (hx + 12) * s, (hy - 8) * s + zFloat);
         ctx.font = `${6 * s}px monospace`;
-        ctx.fillText("z", 15 * s, -28 * s - zFloat);
+        ctx.fillText("z", (hx + 17) * s, (hy - 13) * s - zFloat);
         ctx.font = `${4 * s}px monospace`;
-        ctx.fillText("z", 18 * s, -30 * s + zFloat * 0.5);
+        ctx.fillText("z", (hx + 20) * s, (hy - 16) * s + zFloat * 0.5);
       }
 
       ctx.restore();
