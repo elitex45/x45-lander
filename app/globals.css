@@ -9,39 +9,39 @@
  */
 :root {
   color-scheme: light;
-  --bg: #f7f6fb;
-  --surface: #ffffff;
-  --fg: #121215;
-  --muted: #6b6b76;
-  --border: rgba(18, 18, 21, 0.1);
-  --accent: #7c3aed;
-  --accent-dim: rgba(124, 58, 237, 0.1);
-  --accent-fg: #ffffff;
-  /* second light: electric cyan next to the violet */
-  --accent-2: #0891b2;
+  --bg: #f3f1ec;
+  --surface: #fbfaf7;
+  --fg: #191816;
+  --muted: #6e6a63;
+  --border: rgba(25, 24, 22, 0.1);
+  --accent: #c4470f;
+  --accent-dim: rgba(196, 71, 15, 0.1);
+  --accent-fg: #fffaf5;
+  /* second light: a cool plum that sits opposite the amber */
+  --accent-2: #7c4dcc;
   --glass: rgba(255, 255, 255, 0.55);
   --glass-strong: rgba(255, 255, 255, 0.75);
   --glass-line: rgba(255, 255, 255, 0.9);
   /* syntax highlighting only */
-  --purple: #7c3aed;
+  --purple: #6d4fc2;
   --cyan: #0e7490;
 }
 
-/* Dark is a night city: violet-tinted near-black, neon purple, an electric
- * cyan second light. Nothing warm in the base so the neon stays clean. */
+/* Dark is the terminal at night: true near-black, crisp mint, a violet
+ * second light. Nothing warm in the base so the mint stays clean. */
 .dark {
   color-scheme: dark;
-  --bg: #0a0812;
-  --surface: #13101c;
+  --bg: #09090b;
+  --surface: #111113;
   --fg: #f2f2f4;
   --muted: #8b8b96;
   --border: rgba(242, 242, 244, 0.1);
-  --accent: #b56bff;
-  --accent-dim: rgba(181, 107, 255, 0.14);
-  --accent-fg: #140724;
-  --accent-2: #22d3ee;
-  --glass: rgba(19, 16, 28, 0.55);
-  --glass-strong: rgba(19, 16, 28, 0.82);
+  --accent: #2ee59d;
+  --accent-dim: rgba(46, 229, 157, 0.12);
+  --accent-fg: #06140d;
+  --accent-2: #8b5cf6;
+  --glass: rgba(17, 17, 19, 0.55);
+  --glass-strong: rgba(17, 17, 19, 0.82);
   --glass-line: rgba(255, 255, 255, 0.1);
   --purple: #c4b5fd;
   --cyan: #67e8f9;
