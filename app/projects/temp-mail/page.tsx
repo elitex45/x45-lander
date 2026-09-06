@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
+import { toolBySlug, toolMetadata } from "../../lib/seo";
+import { ToolSeo } from "../../components/ToolSeo";
 import { TempMailApp } from "./TempMailApp";
 
-export const metadata: Metadata = {
-  title: "Temp mail — elitex45",
-  description: "Pick any name at x45.in and get a 10 minute inbox. Then it is gone.",
-  openGraph: { title: "Temp mail — elitex45", description: "Pick any name at x45.in and get a 10 minute inbox. Then it is gone.", siteName: "elitex45 workshop", url: "/projects/temp-mail" },
-  twitter: { card: "summary_large_image", title: "Temp mail — elitex45", description: "Pick any name at x45.in and get a 10 minute inbox. Then it is gone." },
-};
+export const metadata: Metadata = toolMetadata(toolBySlug("temp-mail")!, "/projects/temp-mail");
 
 export default function TempMailPage() {
   return (
@@ -24,6 +21,7 @@ export default function TempMailPage() {
         </p>
       </header>
       <TempMailApp />
+      <ToolSeo slug="temp-mail" path="/projects/temp-mail" />
     </div>
   );
 }

@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
+import { toolBySlug, toolMetadata } from "../../lib/seo";
+import { ToolSeo } from "../../components/ToolSeo";
 
-const title = "README viewer — elitex45";
-const description = "Write Markdown, see the document, export a clean PDF.";
 
-export const metadata: Metadata = {
-  title,
-  description,
-  openGraph: { title, description, siteName: "elitex45 workshop", url: "/projects/readme-viewer" },
-  twitter: { card: "summary_large_image", title, description },
-};
+export const metadata: Metadata = toolMetadata(toolBySlug("readme-viewer")!, "/projects/readme-viewer");
 
 export default function ReadmeViewerLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      <ToolSeo slug="readme-viewer" path="/projects/readme-viewer" />
+    </>
+  );
 }

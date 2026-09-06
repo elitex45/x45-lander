@@ -1,0 +1,23 @@
+# elitex45 workshop (x45.in)
+
+> Small free open-source tools by elitex45 that do one job well. No accounts. Most run entirely in the browser.
+
+Site: https://www.x45.in
+Author: elitex45 (https://github.com/elitex45)
+
+## Tools
+
+- [Temp mail](https://www.x45.in/projects/temp-mail): Free disposable email with a name you choose (alex@x45.in). Mail arrives in seconds, everything is deleted after 10 minutes. Plain HTTP API for scripts and AI agents: https://www.x45.in/projects/temp-mail/api (JSON usage at https://www.x45.in/api/temp-mail).
+- [CopyClip OSS](https://www.x45.in/tools/copyclip-oss): Open source macOS menu bar clipboard manager, AES-256 encrypted at rest, locked behind Touch ID. macOS 14+.
+- [Tweet exporter](https://www.x45.in/tools/tweet-exporter): Chrome/Brave/Edge extension that exports X posts for any usernames to JSON with exact engagement counts. Handles rate limits.
+- [Pomodoro timer](https://www.x45.in/projects/pomodoro): 25 minute focus timer with breaks and a task list. Keyboard shortcuts. Saved in the browser.
+- [README viewer](https://www.x45.in/projects/readme-viewer): Online GitHub-flavoured Markdown editor with live preview and clean PDF export.
+- [Expense tracker](https://www.x45.in/projects/expense-tracker): Private INR expense tracker stored only in the browser, with monthly summaries and import/export.
+
+## Temp mail API (for agents)
+
+1. POST https://www.x45.in/api/temp-mail/claim  body {"name":"alex"}  -> {name,address,token,expiresAt}
+2. GET  https://www.x45.in/api/temp-mail/wait?name=alex&token=TOKEN&since=0&timeout=25  -> waits up to 25s for new mail
+3. GET  https://www.x45.in/api/temp-mail/inbox?name=alex&token=TOKEN  -> all mails, newest first
+
+Limits: 5 claims/min, 30/hour, 3 live addresses per IP. Address lives 10 minutes.

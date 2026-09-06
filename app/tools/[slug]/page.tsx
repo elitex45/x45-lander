@@ -5,6 +5,9 @@ import { notFound } from "next/navigation";
 import { SiteNav } from "../../components/SiteNav";
 import { TrackedAnchor, TrackedLink } from "../../components/TrackedLink";
 import { isExternal, KIND_LABEL, TOOLS } from "../../lib/tools";
+import { toolJsonLd, toolMetadata } from "../../lib/seo";
+import { JsonLd } from "../../components/JsonLd";
+import { ToolFaq } from "../../components/ToolFaq";
 
 /** One page per tool, so a single tool can be shared by link. */
 export function generateStaticParams() {
@@ -19,19 +22,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const tool = TOOLS.find((t) => t.slug === slug);
   if (!tool) return {};
-  const title = `${tool.name}. ${KIND_LABEL[tool.kind]} by elitex45.`;
-  return {
-    title,
-    description: tool.desc,
-    alternates: { canonical: `/tools/${tool.slug}` },
-    openGraph: {
-      title,
-      description: tool.desc,
-      url: `/tools/${tool.slug}`,
-      siteName: "elitex45 workshop",
-    },
-    twitter: { card: "summary_large_image", title, description: tool.desc },
-  };
+  return toolMetadata(tool, `/tools/${tool.slug}`);
 }
 
 export default async function ToolPage({
@@ -49,6 +40,7 @@ export default async function ToolPage({
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
       <div className="lamp" aria-hidden="true" />
+      <JsonLd data={toolJsonLd(tool, `/tools/${tool.slug}`)} />
       <SiteNav current={tool.slug} />
 
       <main className="relative z-10 mx-auto max-w-6xl px-5 pb-20 sm:px-8">
@@ -134,6 +126,9 @@ export default async function ToolPage({
         </section>
 
         <hr className="rule mt-20" />
+        <ToolFaq tool={tool} className="pt-10" />
+
+        <hr className="rule mt-16" />
         <section className="pt-10">
           <div className="mb-6 flex items-end justify-between gap-6">
             <h2 className="text-lg font-semibold tracking-tight">Other tools</h2>
