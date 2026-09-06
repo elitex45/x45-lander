@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteNav } from "../../components/SiteNav";
+import { TrackedAnchor, TrackedLink } from "../../components/TrackedLink";
 import { isExternal, KIND_LABEL, TOOLS } from "../../lib/tools";
 
 /** One page per tool, so a single tool can be shared by link. */
@@ -77,7 +78,9 @@ export default async function ToolPage({
 
             <div className="mt-9 flex flex-wrap items-center gap-3">
               {external ? (
-                <a
+                <TrackedAnchor
+                  event="tool_cta_clicked"
+                  props={{ slug: tool.slug, kind: tool.kind }}
                   href={tool.href}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -85,17 +88,21 @@ export default async function ToolPage({
                 >
                   <GithubLogoIcon size={16} weight="bold" aria-hidden="true" />
                   {tool.cta}
-                </a>
+                </TrackedAnchor>
               ) : (
                 <>
-                  <Link
+                  <TrackedLink
+                    event="tool_cta_clicked"
+                    props={{ slug: tool.slug, kind: tool.kind }}
                     href={tool.href}
                     className="btn-glow inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
                   >
                     {tool.cta}
                     <ArrowUpRightIcon size={16} weight="bold" aria-hidden="true" />
-                  </Link>
-                  <a
+                  </TrackedLink>
+                  <TrackedAnchor
+                    event="source_clicked"
+                    props={{ from: "tool_page", slug: tool.slug }}
                     href={tool.repo}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -103,7 +110,7 @@ export default async function ToolPage({
                   >
                     <GithubLogoIcon size={16} weight="bold" aria-hidden="true" />
                     Source
-                  </a>
+                  </TrackedAnchor>
                 </>
               )}
             </div>

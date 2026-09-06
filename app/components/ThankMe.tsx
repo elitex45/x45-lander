@@ -4,6 +4,7 @@ import { CheckIcon, CopyIcon, HeartIcon, XIcon } from "@phosphor-icons/react/dis
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { track } from "../lib/analytics";
 
 /** One address, every EVM chain. */
 export const TIP_ADDRESS = "0xD8D10a060FC972177702F649eAAb3BB2C3E08652";
@@ -36,6 +37,7 @@ export function ThankMe({ variant = "pill" }: { variant?: "pill" | "link" }) {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(TIP_ADDRESS);
+      track("tip_address_copied");
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -47,7 +49,10 @@ export function ThankMe({ variant = "pill" }: { variant?: "pill" | "link" }) {
     variant === "pill" ? (
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          track("thank_me_opened", { from: "nav" });
+          setOpen(true);
+        }}
         className="btn-glass inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-xs text-[var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
       >
         <HeartIcon size={14} weight="fill" className="text-[var(--accent)]" aria-hidden="true" />
@@ -56,7 +61,10 @@ export function ThankMe({ variant = "pill" }: { variant?: "pill" | "link" }) {
     ) : (
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          track("thank_me_opened", { from: "footer" });
+          setOpen(true);
+        }}
         className="transition-colors hover:text-[var(--accent)]"
       >
         Send crypto

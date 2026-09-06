@@ -4,6 +4,7 @@ import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { PointerEvent } from "react";
+import { track as trackEvent } from "../lib/analytics";
 import { isExternal, KIND_LABEL, type Tool } from "../lib/tools";
 
 /** Move the card's spotlight to the pointer. Writes CSS vars, no re-render. */
@@ -68,7 +69,12 @@ export function ToolCard({ tool, className = "", badge = true }: ToolCardProps) 
       whileTap={{ scale: 0.985 }}
       className={className}
     >
-      <Link href={target} className="tool-card group h-full" onPointerMove={track}>
+      <Link
+        href={target}
+        className="tool-card group h-full"
+        onPointerMove={track}
+        onClick={() => trackEvent("tool_opened", { slug: tool.slug, kind: tool.kind, target })}
+      >
         {inner}
       </Link>
     </motion.div>

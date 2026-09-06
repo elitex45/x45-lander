@@ -3,6 +3,7 @@
 import { GithubLogoIcon } from "@phosphor-icons/react/dist/ssr";
 import { motion } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
+import { track } from "../lib/analytics";
 import { useTheme } from "../lib/theme";
 import { PageCat } from "./PageCat";
 import { SecretGame } from "./SecretGame";
@@ -38,7 +39,10 @@ export function HomePage() {
   const catPositionRef = useRef({ x: 200, y: 0 });
   const [fedTrigger, setFedTrigger] = useState(0);
   const [catFriendly, setCatFriendly] = useState(false);
-  const handleFeedCat = useCallback(() => setFedTrigger((n) => n + 1), []);
+  const handleFeedCat = useCallback(() => {
+    track("cat_fed");
+    setFedTrigger((n) => n + 1);
+  }, []);
   const handlePhaseChange = useCallback((phase: string) => {
     if (phase === "authorized") setCatFriendly(true);
     if (phase === "idle") setCatFriendly(false);
@@ -90,6 +94,7 @@ export function HomePage() {
                 href={REPO}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => track("source_clicked", { from: "hero" })}
                 className="btn-glow inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
               >
                 <GithubLogoIcon size={16} weight="bold" aria-hidden="true" />

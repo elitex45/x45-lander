@@ -1,6 +1,7 @@
 "use client";
 
 import { LampIcon } from "@phosphor-icons/react/dist/ssr";
+import { track } from "../lib/analytics";
 import { useTheme } from "../lib/theme";
 
 /**
@@ -14,7 +15,11 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      onClick={() => {
+        const next = theme === "dark" ? "light" : "dark";
+        track("theme_toggled", { to: next });
+        setTheme(next);
+      }}
       className="group inline-flex h-9 items-center gap-2 rounded-full border border-[var(--border)] px-3 text-xs text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] active:scale-[0.97]"
       aria-label="Toggle the desk lamp (light or dark theme)"
     >
