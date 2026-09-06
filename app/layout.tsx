@@ -7,15 +7,16 @@ import { Providers } from "./providers";
 import { NO_FLASH_SCRIPT } from "./lib/theme";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://x45.in"),
+  metadataBase: new URL("https://www.x45.in"),
   title: "elitex45. Small tools for a slightly easier day.",
   description:
     "Free, open-source browser tools that do one job well: a focus timer, a Markdown to PDF viewer, and a private expense tracker.",
+  twitter: { card: "summary_large_image" },
   openGraph: {
     title: "elitex45. Small tools for a slightly easier day.",
     description:
       "Free, open-source browser tools that do one job well. No accounts, no servers.",
-    url: "https://x45.in",
+    url: "https://www.x45.in",
     siteName: "elitex45 workshop",
     images: [
       {

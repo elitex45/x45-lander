@@ -29,8 +29,8 @@ export async function generateMetadata({
       description: tool.desc,
       url: `/tools/${tool.slug}`,
       siteName: "elitex45 workshop",
-      images: [{ url: "/og.jpg", width: 1600, height: 840, alt: tool.name }],
     },
+    twitter: { card: "summary_large_image", title, description: tool.desc },
   };
 }
 
