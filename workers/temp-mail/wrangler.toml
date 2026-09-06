@@ -1,0 +1,6 @@
+# Cloudflare Email Worker for x45.in temp mail.
+# Deploy:  npx wrangler deploy -c workers/temp-mail/wrangler.toml
+# Secrets: UPSTASH_URL, UPSTASH_TOKEN (wrangler secret put ... -c workers/temp-mail/wrangler.toml)
+name = "x45-temp-mail"
+main = "src/index.js"
+compatibility_date = "2026-09-01"

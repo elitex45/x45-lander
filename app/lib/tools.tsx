@@ -4,6 +4,7 @@ import { PomodoroPreview } from "../components/previews/PomodoroPreview";
 import { ReadmePreview } from "../components/previews/ReadmePreview";
 import { TweetExporterPreview } from "../components/previews/TweetExporterPreview";
 import { CopyClipPreview } from "../components/previews/CopyClipPreview";
+import { TempMailPreview } from "../components/previews/TempMailPreview";
 
 export type ToolKind = "web" | "extension" | "mac" | "cli";
 
@@ -39,6 +40,23 @@ export const KIND_LABEL: Record<ToolKind, string> = {
  * A preview is optional; cards without one still look fine.
  */
 export const TOOLS: Tool[] = [
+  {
+    slug: "temp-mail",
+    name: "Temp mail",
+    desc: "Pick any name at x45.in and get a 10 minute inbox. Then it is gone.",
+    href: "/projects/temp-mail",
+    kind: "web",
+    repo: "https://github.com/elitex45/x45-lander/tree/main/app/projects/temp-mail",
+    added: "2026-09-06",
+    preview: <TempMailPreview />,
+    details: [
+      "Type a name like alex, get alex@x45.in. Or let it pick one for you.",
+      "Mail shows up on the page within seconds. Read it as text or safe HTML.",
+      "After 10 minutes the address and every mail in it are deleted.",
+      "Honest note: this one needs a server. Mail sits there for 10 minutes, then it is gone.",
+    ],
+    cta: "Open the inbox",
+  },
   {
     slug: "copyclip-oss",
     name: "CopyClip OSS",
