@@ -1,7 +1,7 @@
 "use client";
 
 import { GithubLogoIcon } from "@phosphor-icons/react/dist/ssr";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
 import { track } from "../lib/analytics";
 import { useTheme } from "../lib/theme";
@@ -72,7 +72,7 @@ export function HomePage() {
           className="grid gap-10 pb-20 pt-10 lg:grid-cols-12 lg:gap-8 lg:pt-16"
           aria-labelledby="hero-title"
         >
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease }}
@@ -101,10 +101,10 @@ export function HomePage() {
                 Read the source
               </a>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Newest tool gets the big slot. It changes as the list grows. */}
-          <motion.div
+          <m.div
             initial="hidden"
             animate="visible"
             variants={{
@@ -118,7 +118,7 @@ export function HomePage() {
               newest
             </p>
             <ToolCard tool={newest} className="min-h-[380px]" />
-          </motion.div>
+          </m.div>
         </section>
 
         <hr className="rule" />
@@ -140,7 +140,7 @@ export function HomePage() {
               {TOOLS.length} and counting
             </p>
           </div>
-          <motion.div
+          <m.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.15 }}
@@ -153,7 +153,7 @@ export function HomePage() {
             {TOOLS.filter((t) => t.slug !== newest.slug).map((tool) => (
               <ToolCard key={tool.slug} tool={tool} className="min-h-[320px]" />
             ))}
-          </motion.div>
+          </m.div>
         </section>
 
         {/* How they are built: three statements, no boxes. */}
@@ -164,7 +164,7 @@ export function HomePage() {
           </h2>
           <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
             {principles.map((p, i) => (
-              <motion.div
+              <m.div
                 key={p.title}
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -178,7 +178,7 @@ export function HomePage() {
                 <p className="mt-3 max-w-[34ch] text-[15px] leading-relaxed text-[var(--muted)]">
                   {p.body}
                 </p>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </section>

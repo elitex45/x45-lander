@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 
 type GamePhase = "idle" | "fish-collected" | "blackout" | "authorized";
 
@@ -174,7 +174,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
       {/* ── Floating Fish ── */}
       <AnimatePresence>
         {phase === "idle" && fishPos.x > 0 && (
-          <motion.button
+          <m.button
             initial={{ opacity: 0, scale: 0 }}
             animate={{
               opacity: 1,
@@ -199,14 +199,14 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
             title="A wild fish appeared..."
           >
             🐟
-          </motion.button>
+          </m.button>
         )}
       </AnimatePresence>
 
       {/* ── Fish following cursor ── */}
       <AnimatePresence>
         {phase === "fish-collected" && (
-          <motion.div
+          <m.div
             initial={{ scale: 1.5 }}
             animate={{ scale: 1 }}
             className="fixed z-30 pointer-events-none select-none"
@@ -218,14 +218,14 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
             }}
           >
             🐟
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* ── Hint banner ── */}
       <AnimatePresence>
         {phase === "fish-collected" && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
@@ -238,7 +238,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
             }}
           >
             bring the fish to the cat...
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -294,7 +294,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
       {/* ── Blackout overlay WITH torch hole (pointer-events: none so input is clickable) ── */}
       <AnimatePresence>
         {phase === "blackout" && (
-          <motion.div
+          <m.div
             ref={torchRef}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -313,7 +313,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
             }}
           >
             {/* Hint text — always visible on the dark overlay */}
-            <motion.p
+            <m.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8, duration: 1 }}
@@ -325,15 +325,15 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
               <span style={{ color: "rgba(255,255,255,0.12)" }}>
                 that&apos;s how the cat will recognize you.
               </span>
-            </motion.p>
-          </motion.div>
+            </m.p>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* ── Warm torch glow ── */}
       <AnimatePresence>
         {phase === "blackout" && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -355,7 +355,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
       {/* ── Authorized Message ── */}
       <AnimatePresence>
         {showAuth && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
@@ -364,7 +364,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
             style={{ background: "rgba(0,0,0,0.95)" }}
           >
             <div className="text-center">
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -377,7 +377,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
                 >
                   &gt; user authorized
                 </p>
-                <motion.p
+                <m.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.2 }}
@@ -385,8 +385,8 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
                   style={{ color: "var(--muted)" }}
                 >
                   the cat remembers you now
-                </motion.p>
-                <motion.div
+                </m.p>
+                <m.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 2.5 }}
@@ -415,17 +415,17 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
                   >
                     [ play again ]
                   </button>
-                </motion.div>
-              </motion.div>
+                </m.div>
+              </m.div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* ── Reset button (visible only when authorized, bottom-right corner) ── */}
       <AnimatePresence>
         {phase === "authorized" && !showAuth && (
-          <motion.button
+          <m.button
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -438,7 +438,7 @@ export function SecretGame({ catPosition, onFeedCat, onPhaseChange, isDark }: Se
             }}
           >
             reset 🐟
-          </motion.button>
+          </m.button>
         )}
       </AnimatePresence>
 

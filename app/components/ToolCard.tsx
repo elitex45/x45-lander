@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import Link from "next/link";
 import type { PointerEvent } from "react";
 import { track as trackEvent } from "../lib/analytics";
@@ -56,7 +56,7 @@ export function ToolCard({ tool, className = "", badge = true }: ToolCardProps) 
   );
 
   return (
-    <motion.div
+    <m.div
       variants={{
         hidden: { opacity: 0, y: 18 },
         visible: {
@@ -77,6 +77,6 @@ export function ToolCard({ tool, className = "", badge = true }: ToolCardProps) 
       >
         {inner}
       </Link>
-    </motion.div>
+    </m.div>
   );
 }

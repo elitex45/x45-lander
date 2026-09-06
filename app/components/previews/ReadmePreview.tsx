@@ -1,6 +1,3 @@
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-
 const SNIPPET = `# Ship notes
 
 Type on the left,
@@ -10,7 +7,10 @@ read on the right.
 - [x] code highlighting
 - [ ] export as PDF`;
 
-/** The real markdown pipeline the tool uses, rendering a real snippet. */
+/**
+ * Hand-rendered miniature of the same snippet. The real tool uses
+ * react-markdown; the card does not, so the home page skips 138 KB of it.
+ */
 export function ReadmePreview() {
   return (
     <div
@@ -21,7 +21,19 @@ export function ReadmePreview() {
         {SNIPPET}
       </pre>
       <div className="readme-prose readme-prose-mini overflow-hidden px-4 py-4">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{SNIPPET}</ReactMarkdown>
+        <h1>Ship notes</h1>
+        <p>Type on the left, read on the right.</p>
+        <ul className="contains-task-list">
+          <li className="task-list-item">
+            <input type="checkbox" checked disabled readOnly /> tables and task lists
+          </li>
+          <li className="task-list-item">
+            <input type="checkbox" checked disabled readOnly /> code highlighting
+          </li>
+          <li className="task-list-item">
+            <input type="checkbox" disabled readOnly /> export as PDF
+          </li>
+        </ul>
       </div>
     </div>
   );

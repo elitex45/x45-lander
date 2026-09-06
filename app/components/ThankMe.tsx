@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckIcon, CopyIcon, HeartIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { track } from "../lib/analytics";
@@ -74,7 +74,7 @@ export function ThankMe({ variant = "pill" }: { variant?: "pill" | "link" }) {
   const modal = (
     <AnimatePresence>
       {open && (
-        <motion.div
+        <m.div
           key="tip"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -91,7 +91,7 @@ export function ThankMe({ variant = "pill" }: { variant?: "pill" | "link" }) {
           aria-modal="true"
           aria-labelledby="tip-title"
         >
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
@@ -157,8 +157,8 @@ export function ThankMe({ variant = "pill" }: { variant?: "pill" | "link" }) {
                 </>
               )}
             </button>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>
   );
