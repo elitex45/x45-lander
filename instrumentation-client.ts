@@ -3,7 +3,10 @@
 // ad blockers and Brave Shields do not drop it.
 import posthog from "posthog-js";
 
-const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+// The project key is public by design (it ships to every browser), so it
+// lives here as a fallback. The env var, when set, still wins.
+const FALLBACK_KEY = "phc_zLbeDYeAvWxpKwHAG9J7mBxrDkV7Kr8HvKDS7B3RorQF";
+const key = process.env.NEXT_PUBLIC_POSTHOG_KEY || FALLBACK_KEY;
 
 if (key) {
   try {
