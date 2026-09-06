@@ -68,6 +68,20 @@ export default {
       })),
     };
 
+    // Count arrivals in PostHog. Same public key as the site. Never blocks.
+    try {
+      await fetch("https://us.i.posthog.com/i/v0/e/", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          api_key: "phc_zLbeDYeAvWxpKwHAG9J7mBxrDkV7Kr8HvKDS7B3RorQF",
+          event: "temp_mail_delivered",
+          distinct_id: "worker",
+          properties: { has_html: !!mail.html, attachments: mail.attachments.length, $process_person_profile: false },
+        }),
+      });
+    } catch {}
+
     const key = `inbox:${name}`;
     await redis.lpush(key, JSON.stringify(mail));
     await redis.ltrim(key, 0, MAX_MAILS - 1);
