@@ -53,6 +53,7 @@ export const TOOLS: Tool[] = [
       "Type a name like alex, get alex@x45.in. Or let it pick one for you.",
       "Mail shows up on the page within seconds. Read it as text or safe HTML.",
       "After 10 minutes the address and every mail in it are deleted.",
+      "Plain HTTP API too, so scripts and AI agents can get an inbox in three calls.",
       "Honest note: this one needs a server. Mail sits there for 10 minutes, then it is gone.",
     ],
     cta: "Open the inbox",

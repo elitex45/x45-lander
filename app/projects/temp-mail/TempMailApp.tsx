@@ -9,8 +9,10 @@ import {
   ShuffleIcon,
   TrashIcon,
 } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { track } from "../../lib/analytics";
+import { CopyAgentPrompt } from "./CopyAgentPrompt";
 import { MAIL_DOMAIN, nameProblem, normalizeName, type Mail } from "../../lib/temp-mail";
 
 interface Session {
@@ -289,6 +291,16 @@ export function TempMailApp() {
           there, encrypted in transit, for at most 10 minutes, then it is deleted.
           Do not use this for anything you would mind losing.
         </p>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-[var(--muted)]">
+            Using an AI agent? Paste it the instructions.{" "}
+            <Link href="/projects/temp-mail/api" className="text-[var(--accent)] hover:underline">
+              Or read the API
+            </Link>
+            .
+          </p>
+          <CopyAgentPrompt from="inbox" />
+        </div>
       </section>
     );
   }
