@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { track } from "../../lib/analytics";
 import { CopyAgentPrompt } from "./CopyAgentPrompt";
+import { PasswordBox, usePasswordGenerator } from "./PasswordBox";
 import { MAIL_DOMAIN, nameProblem, normalizeName, type Mail } from "../../lib/temp-mail";
 
 interface Session {
@@ -94,6 +95,8 @@ export function TempMailApp() {
   const [now, setNow] = useState(() => Date.now());
   const [checking, setChecking] = useState(false);
   const pollRef = useRef<number | null>(null);
+  // Kept up here so the password survives the switch to the inbox layout.
+  const pw = usePasswordGenerator();
 
   useEffect(() => {
     // Restore an address from this tab, if it is still alive.
@@ -233,82 +236,87 @@ export function TempMailApp() {
 
   if (!session) {
     return (
-      <section className="glass-card mx-auto max-w-xl p-6 sm:p-8">
-        <label htmlFor="tm-name" className="text-sm font-medium">
-          Pick a name
-        </label>
-        <form
-          className="mt-3 flex flex-col gap-3 sm:flex-row"
-          onSubmit={(e) => {
-            e.preventDefault();
-            claim(input);
-          }}
-        >
-          <div className="flex h-12 flex-1 items-center rounded-full border border-[var(--border)] bg-[var(--surface)] pl-4 pr-3 focus-within:border-[var(--accent)]">
-            <input
-              id="tm-name"
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                setError(null);
-              }}
-              placeholder="alex"
-              autoComplete="off"
-              autoCapitalize="off"
-              spellCheck={false}
-              maxLength={30}
-              className="min-w-0 flex-1 bg-transparent font-mono text-[15px] outline-none placeholder:text-[var(--muted)]"
-            />
-            <span className="font-mono text-sm text-[var(--muted)]">@{MAIL_DOMAIN}</span>
+      <div className="grid items-start gap-5 lg:grid-cols-12">
+        <section className="glass-card p-6 sm:p-8 lg:col-span-7">
+          <label htmlFor="tm-name" className="text-sm font-medium">
+            Pick a name
+          </label>
+          <form
+            className="mt-3 flex flex-col gap-3 sm:flex-row"
+            onSubmit={(e) => {
+              e.preventDefault();
+              claim(input);
+            }}
+          >
+            <div className="flex h-12 flex-1 items-center rounded-full border border-[var(--border)] bg-[var(--surface)] pl-4 pr-3 focus-within:border-[var(--accent)]">
+              <input
+                id="tm-name"
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  setError(null);
+                }}
+                placeholder="alex"
+                autoComplete="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                maxLength={30}
+                className="min-w-0 flex-1 bg-transparent font-mono text-[15px] outline-none placeholder:text-[var(--muted)]"
+              />
+              <span className="font-mono text-sm text-[var(--muted)]">@{MAIL_DOMAIN}</span>
+            </div>
+            <button
+              type="submit"
+              disabled={busy}
+              className="btn-glow inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium disabled:opacity-60"
+            >
+              <EnvelopeSimpleIcon size={16} weight="bold" aria-hidden="true" />
+              {busy ? "Creating…" : "Create inbox"}
+            </button>
+          </form>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--muted)]">
+            <button
+              type="button"
+              onClick={() => claim(randomName())}
+              className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--accent)]"
+            >
+              <ShuffleIcon size={14} aria-hidden="true" />
+              Surprise me
+            </button>
+            <span>Letters, numbers, dots, dashes. Lives 10 minutes.</span>
           </div>
-          <button
-            type="submit"
-            disabled={busy}
-            className="btn-glow inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium disabled:opacity-60"
-          >
-            <EnvelopeSimpleIcon size={16} weight="bold" aria-hidden="true" />
-            {busy ? "Creating…" : "Create inbox"}
-          </button>
-        </form>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--muted)]">
-          <button
-            type="button"
-            onClick={() => claim(randomName())}
-            className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--accent)]"
-          >
-            <ShuffleIcon size={14} aria-hidden="true" />
-            Surprise me
-          </button>
-          <span>Letters, numbers, dots, dashes. Lives 10 minutes.</span>
-        </div>
-        {error && (
-          <p role="alert" className="mt-3 text-sm text-[var(--accent)]">
-            {error}
+          {error && (
+            <p role="alert" className="mt-3 text-sm text-[var(--accent)]">
+              {error}
+            </p>
+          )}
+          <p className="mt-6 border-t border-[var(--border)] pt-4 text-xs leading-relaxed text-[var(--muted)]">
+            Honest note: mail has to pass through a server to reach you. It sits
+            there, encrypted in transit, for at most 10 minutes, then it is deleted.
+            Do not use this for anything you would mind losing.
           </p>
-        )}
-        <p className="mt-6 border-t border-[var(--border)] pt-4 text-xs leading-relaxed text-[var(--muted)]">
-          Honest note: mail has to pass through a server to reach you. It sits
-          there, encrypted in transit, for at most 10 minutes, then it is deleted.
-          Do not use this for anything you would mind losing.
-        </p>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-[var(--muted)]">
-            Using an AI agent? Paste it the instructions.{" "}
-            <Link href="/projects/temp-mail/api" className="text-[var(--accent)] hover:underline">
-              Or read the API
-            </Link>
-            .
-          </p>
-          <CopyAgentPrompt from="inbox" />
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-[var(--muted)]">
+              Using an AI agent? Paste it the instructions.{" "}
+              <Link href="/projects/temp-mail/api" className="text-[var(--accent)] hover:underline">
+                Or read the API
+              </Link>
+              .
+            </p>
+            <CopyAgentPrompt from="inbox" />
+          </div>
+        </section>
+        <div className="lg:col-span-5">
+          <PasswordBox {...pw} />
         </div>
-      </section>
+      </div>
     );
   }
 
   return (
     <section className="grid gap-5 lg:grid-cols-12">
       {/* Address card */}
-      <div className="glass-card p-5 lg:col-span-12">
+      <div className="glass-card p-5 lg:col-span-7 lg:row-start-1">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="font-mono text-[11px] uppercase tracking-wide text-[var(--muted)]">
@@ -353,8 +361,13 @@ export function TempMailApp() {
         </div>
       </div>
 
+      {/* Runs down the side of both the address and the inbox, so no card is left hollow. */}
+      <div className="lg:col-span-5 lg:row-span-2 lg:row-start-1">
+        <PasswordBox {...pw} />
+      </div>
+
       {/* Mail list */}
-      <div className="glass-card overflow-hidden lg:col-span-5">
+      <div className="glass-card overflow-hidden lg:col-span-7 lg:row-start-2">
         <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
           <p className="text-sm font-medium">
             Inbox <span className="text-[var(--muted)]">({mails.length})</span>
@@ -412,9 +425,12 @@ export function TempMailApp() {
       </div>
 
       {/* Reader */}
-      <div className="glass-card min-h-[320px] p-5 lg:col-span-7" data-ph-mask>
+      <div
+        className={`glass-card p-5 lg:col-span-12 lg:row-start-3 ${open ? "min-h-[320px]" : ""}`}
+        data-ph-mask
+      >
         {!open ? (
-          <div className="flex h-full min-h-[280px] items-center justify-center text-sm text-[var(--muted)]">
+          <div className="flex items-center justify-center py-6 text-sm text-[var(--muted)]">
             Pick a mail to read it.
           </div>
         ) : (
